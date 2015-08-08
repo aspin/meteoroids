@@ -11,3 +11,9 @@ Players.allow({
     return true;
   }
 });
+
+{
+  username: 'tedwu',
+  position: Position(x, y),
+
+}
