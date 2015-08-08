@@ -1,4 +1,4 @@
-/* 
+/*
 
     ADD IN JAVASCRIPT CODE HERE.
 
@@ -6,6 +6,6 @@
 
 */
 
-Template.firstView.rendered = function () {
+Template.meteroid.rendered = function () {
     // add javascript to be executed when the template first_view is rendered
 };
