@@ -15,4 +15,4 @@ class Game {
   }
 }
 
-console.log(new Game());
+this.Game = Game;

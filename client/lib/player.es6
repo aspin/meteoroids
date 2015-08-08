@@ -27,3 +27,7 @@ class Velocity {
 
   }
 }
+
+this.Player = Player;
+this.Position = Position;
+this.Velocity = Velocity;

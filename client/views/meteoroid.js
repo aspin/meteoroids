@@ -7,7 +7,7 @@
 */
 
 Template.meteoroid.onRendered(function() {
-    // add javascript to be executed when the template first_view is rendered
+    // console.log(new Game());
     var game = new Phaser.Game(800, 600, Phaser.CANVAS, 'phaser-example', { preload: preload, create: create, update: update, render: render });
 
     function preload() {
