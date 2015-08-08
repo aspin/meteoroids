@@ -1,11 +1,16 @@
-/*
+Template.meteroid.onRendered(function() {
+  var game = new Phaser.Game(800, 600, Phaser.AUTO, '', { preload: preload, create: create });
 
-    ADD IN JAVASCRIPT CODE HERE.
+      function preload () {
 
-    Rename and reorder these pages as necessary.
+          game.load.image('logo', 'phaser.png');
 
-*/
+      }
 
-Template.meteroid.rendered = function () {
-    // add javascript to be executed when the template first_view is rendered
-};
+      function create () {
+
+          var logo = game.add.sprite(game.world.centerX, game.world.centerY, 'logo');
+          logo.anchor.setTo(0.5, 0.5);
+
+      }
+});

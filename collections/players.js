@@ -11,3 +11,15 @@ Players.allow({
     return true;
   }
 });
+
+{
+  username: 'tedwu',
+  position:
+}
+
+class Position {
+  constructor(x, y) {
+    this.x = x;
+    this.y = y;
+  }
+}
