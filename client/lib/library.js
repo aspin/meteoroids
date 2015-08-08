@@ -1,0 +1,8 @@
+/* 
+
+    ADD JAVASCRIPT LIBRARIES AS NEEDED TO THIS FOLDER.
+
+    These will be loaded before the rest of your views.
+    There is no need to add links in the header of your index.html.
+
+*/
