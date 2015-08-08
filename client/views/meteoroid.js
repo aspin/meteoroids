@@ -9,7 +9,7 @@
 Template.meteoroid.onRendered(function() {
     // add javascript to be executed when the template first_view is rendered
     var game = new Phaser.Game(800, 600, Phaser.CANVAS, 'phaser-example', { preload: preload, create: create, update: update, render: render });
-    
+
     function preload() {
 
         game.load.image('space', 'assets/skies/deep-space.jpg');
@@ -140,5 +140,5 @@ Template.meteoroid.onRendered(function() {
 
     function render() {
     }
-    
+
 });

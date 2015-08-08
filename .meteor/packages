@@ -10,4 +10,4 @@ insecure
 mizzao:bootstrap-3
 iron:router
 digioak:meteor-phaser
-babel-compiler
+grigio:babel

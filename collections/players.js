@@ -1,19 +1,20 @@
 Players = new Mongo.Collection("Players");
 
 Players.allow({
-  insert: function(){
+  insert: function() {
     return true;
   },
-  update: function(){
+  update: function() {
     return true;
   },
-  remove: function(){
+  remove: function() {
     return true;
   }
 });
 
-{
-  username: 'tedwu',
-  position: Position(x, y),
-
-}
+// {
+//   username: 'tedwu',
+//   position: (x, y),
+//   health: 1000,
+//   weapon: 'weaponName',
+// }
