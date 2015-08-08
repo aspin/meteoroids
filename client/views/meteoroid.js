@@ -60,6 +60,20 @@ Template.meteoroid.onRendered(function() {
         //  Game input
         cursors = game.input.keyboard.createCursorKeys();
         game.input.keyboard.addKeyCapture([ Phaser.Keyboard.SPACEBAR ]);
+        
+        // ** CUSTOM CODE **
+        var id = parseInt(Math.random() * 1000000).toString();
+        Session.set("userId", id);
+        // console.log("player " + Session.get("userId") + " at location (" + sprite.x + "," + sprite.y + ")");
+        
+        // Initialize database with location
+        // console.log(Session.get("userId"));
+        // console.log(sprite.x + sprite.y);
+        Players.insert({
+          _id: Session.get("userId"),
+          x: sprite.x,
+          y: sprite.y
+        });
 
     }
 
@@ -95,7 +109,16 @@ Template.meteoroid.onRendered(function() {
         screenWrap(sprite);
 
         bullets.forEachExists(screenWrap, this);
-
+        
+        // ** CUSTOM CODE **
+        Players.update(Session.get("userId"), {
+          x: sprite.x,
+          y: sprite.y
+        });
+        
+        var me = Players.findOne({_id: Session.get("userId")});
+        console.log(me._id + " " + me.x + " " + me.y);
+        
     }
 
     function fireBullet () {
