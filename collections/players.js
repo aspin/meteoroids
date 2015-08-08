@@ -14,12 +14,6 @@ Players.allow({
 
 {
   username: 'tedwu',
-  position:
-}
+  position: Position(x, y),
 
-class Position {
-  constructor(x, y) {
-    this.x = x;
-    this.y = y;
-  }
 }
