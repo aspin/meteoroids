@@ -3,4 +3,6 @@ Meteor.startup(function () {
     Meteor.call('removeInactive');
   });
   var t = setInterval(boundFunction, 500);
+  
+  Meteor.call('createAsteroids', 5, 1066, 600);
 });

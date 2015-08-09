@@ -1,9 +1,18 @@
 Meteor.methods({
   createAsteroids: function(num, Xmax, Ymax) {
+    Asteroids.remove({});
     for(var i = 0; i < num; i++) {
       var randomX = Math.floor(Math.random() * Xmax);
       var randomY = Math.floor(Math.random() * Ymax);
-      Asteroids.insert({x: randomX, y: randomY});
+      var randomXvel = Math.floor(Math.random() * 500) - 250;
+      var randomYvel = Math.floor(Math.random() * 500) - 250;
+      
+      Asteroids.insert({
+        x: randomX, 
+        y: randomY,
+        xvel: randomXvel,
+        yvel: randomYvel
+      });
     }
   },
   removeInactive: function() {

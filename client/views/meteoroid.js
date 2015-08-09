@@ -33,10 +33,12 @@ function create() {
   asteroids.enableBody = true;
   asteroids.physicsBodyType = Phaser.Physics.ARCADE;
 
-  Asteroids.find().forEach(function(asteroid) {
-    asteroid = asteroids.create(asteroid.x, asteroid.y, 'asteroid');
+  Asteroids.find().forEach(function(ast) {
+    asteroid = asteroids.create(ast.x, ast.y, 'asteroid');
+    console.log(ast);
+    asteroid.body.velocity = new Phaser.Point(ast.xvel, ast.yvel);
     asteroid.body.collideWorldBounds=true;
-    asteroid.body.bounce.setTo(0.1, 0.1);
+    asteroid.body.bounce.setTo(1, 1);
   });
 
   game.physics.arcade.enable(asteroids, Phaser.Physics.ARCADE);
@@ -121,7 +123,6 @@ function update() {
   if (activePlayer) {
     var me = Players.findOne({ _id: Session.get("userId") });
     if (me.x === sprite.x && me.y === sprite.y && me.rotation === sprite.rotation) {
-      console.log("no change");
     } else {
       Players.update({_id: Session.get("userId")}, {$set: {
         x: sprite.x,
