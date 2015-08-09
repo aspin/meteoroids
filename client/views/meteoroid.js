@@ -146,7 +146,7 @@ function setupControls() {
 function setupCurrentPlayer() {
   currentPlayer = game.add.sprite(50, 50, 'ship');
   currentPlayer.anchor.setTo(0.5);
-  currentPlayer.tint = Math.random() * 0xffffff;
+  // currentPlayer.tint = Math.random() * 0xffffff;
   game.physics.enable(currentPlayer, Phaser.Physics.ARCADE);
   currentPlayer.body.drag.set(100);
   currentPlayer.body.maxVelocity.set(400);
