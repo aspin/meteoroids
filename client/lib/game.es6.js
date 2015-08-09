@@ -1,6 +1,4 @@
-console.log(Phaser);
-
-class Game {
+class MeteroidGame {
   constructor() {
     this.players = [];
     this.asteroids = [];
@@ -17,4 +15,4 @@ class Game {
   }
 }
 
-this.Game = Game;
+this.MeteroidGame = MeteroidGame;

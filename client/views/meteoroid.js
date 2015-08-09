@@ -1,7 +1,7 @@
 var X_MAX = 1066;
 var Y_MAX = 600;
 
-var playerId, game, sprite, cursors, bullet, bullets, asteroid, asteroids, randomXPosition, randomYPosition, explosions;
+var playerId, game, sprite, cursors, bullet, bullets, asteroid, asteroids, explosions;
 var players = {};
 var activePlayer = false;
 var bulletTime = 0;
@@ -44,7 +44,7 @@ function create() {
   asteroids = game.add.group();
   asteroids.enableBody = true;
   asteroids.physicsBodyType = Phaser.Physics.ARCADE;
-  
+
   game.physics.arcade.enable(asteroids, Phaser.Physics.ARCADE);
 
   bullets = game.add.group();

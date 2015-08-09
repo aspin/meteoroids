@@ -3,5 +3,4 @@ Meteor.startup(function () {
     Meteor.call('removeInactive');
   });
   var t = setInterval(boundFunction, 500);
-  
 });
