@@ -8,6 +8,7 @@ var cursors, bullet, bulletTime = 0;
 var bullets, asteroids, spaceships, explosions;
 var asteroid, bullet;
 var activePlayer = false;
+var currentWeapon = 0;
 
 var isHost = false;
 
@@ -232,24 +233,78 @@ function checkControls() {
   if (game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR)) {
     fireBullet(currentPlayer.body.x, currentPlayer.body.y, currentPlayer.rotation);
   }
+  
+  if (game.input.keyboard.isDown(Phaser.Keyboard.SHIFT)) {
+    currentWeapon = (currentWeapon + 1) % 3;
+  }
 }
 
 function fireBullet (x, y, rotation) {
-  if (game.time.now > bulletTime) {
-    bullet = bullets.getFirstExists(false);
+  if (currentWeapon === 1) {
+    console.log(0);
+    if (game.time.now > bulletTime) {
+      bullet = bullets.getFirstExists(false);
 
-    if (bullet) {
-      bullet.reset(x + 15, y + 15);
-      bullet.lifespan = 2000;
-      bullet.rotation = rotation;
-      game.physics.arcade.velocityFromRotation(rotation, 400, bullet.body.velocity);
-      bulletTime = game.time.now + 50;
+      if (bullet) {
+        bullet.reset(x + 15, y + 15);
+        bullet.lifespan = 2000;
+        bullet.rotation = rotation;
+        game.physics.arcade.velocityFromRotation(rotation, 400, bullet.body.velocity);
+        bulletTime = game.time.now + 50;
 
-      Bullets.insert({
-        x: bullet.x,
-        y: bullet.y,
-        rotation: bullet.rotation,
-      });
+        Bullets.insert({
+          x: bullet.x,
+          y: bullet.y,
+          rotation: bullet.rotation,
+        });
+      }
+    }
+  } else if (currentWeapon === 0) {
+    console.log(1);
+    if (game.time.now > bulletTime) {
+      
+      bullet1 = bullets.getFirstExists(false);
+      if (bullet1) {
+        bullet1.reset(x + 15, y + 15);
+        bullet1.lifespan = 2000;
+        bullet1.rotation = rotation;
+        game.physics.arcade.velocityFromRotation(rotation + 0.1, 400, bullet1.body.velocity);
+
+        Bullets.insert({
+          x: bullet1.x,
+          y: bullet1.y,
+          rotation: bullet1.rotation,
+        });
+      }
+      
+      bullet2 = bullets.getFirstExists(false);
+      if (bullet2) {
+        bullet2.reset(x + 15, y + 15);
+        bullet2.lifespan = 2000;
+        bullet2.rotation = rotation;
+        game.physics.arcade.velocityFromRotation(rotation, 400, bullet2.body.velocity);
+
+        Bullets.insert({
+          x: bullet2.x,
+          y: bullet2.y,
+          rotation: bullet2.rotation,
+        });
+      }
+      
+      bullet3 = bullets.getFirstExists(false);
+      if (bullet3) {
+        bullet3.reset(x + 15, y + 15);
+        bullet3.lifespan = 2000;
+        bullet3.rotation = rotation;
+        game.physics.arcade.velocityFromRotation(rotation - 0.1, 400, bullet3.body.velocity);
+        bulletTime = game.time.now + 500;
+
+        Bullets.insert({
+          x: bullet3.x,
+          y: bullet3.y,
+          rotation: bullet3.rotation,
+        });
+      }
     }
   }
 }
