@@ -26,6 +26,7 @@ Template.meteoroid.onRendered(function() {
     var bullets;
     var bulletTime = 0;
     var asteroid;
+    var asteroids;
     var randomXPosition; 
     var randomYPosition;
 
@@ -43,13 +44,20 @@ Template.meteoroid.onRendered(function() {
 
         // Create asteroid in random positions 
         
+        asteroids = game.add.group();
+        asteroids.enableBody = true;
+        asteroids.physicsBodyType = Phaser.Physics.ARCADE;
 
-        for(var i = 0; i < 3; i++) {
+        for(var i = 0; i < 5; i++) {
             randomXPosition = Math.floor(Math.random() * 1000) + 100;
             randomYPosition = Math.floor(Math.random() * 800) + 100;
-            asteroid = game.add.sprite(randomXPosition, randomYPosition, 'asteroid');
+            asteroid = asteroids.create(randomXPosition, randomYPosition, 'asteroid');
+            asteroid.body.collideWorldBounds=true;
+            asteroid.body.bounce.setTo(0.1, 0.1);
+
         }
-        game.physics.arcade.enable(asteroid);
+       
+        game.physics.arcade.enable(asteroids, Phaser.Physics.ARCADE);
 
         //  Our ships bullets
         bullets = game.add.group();
@@ -69,7 +77,9 @@ Template.meteoroid.onRendered(function() {
         game.physics.enable(sprite, Phaser.Physics.ARCADE);
 
         sprite.body.drag.set(100);
-        sprite.body.maxVelocity.set(100);
+        sprite.body.maxVelocity.set(400);
+        sprite.body.collideWorldBounds=true;
+        sprite.body.bounce.setTo(0.2,0.2);
 
         //  Game input
         cursors = game.input.keyboard.createCursorKeys();
@@ -106,13 +116,17 @@ Template.meteoroid.onRendered(function() {
             fireBullet();
         }
 
+
+        game.physics.arcade.collide(asteroids, sprite, blowUp, null, this);
+
         screenWrap(sprite);
 
         bullets.forEachExists(screenWrap, this);
 
     }
-    function collision() {
-        console.log("collided");
+
+    function blowUp() {
+        console.log("Blowing up");
     }
 
     function fireBullet () {
