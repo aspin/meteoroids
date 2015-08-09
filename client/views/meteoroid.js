@@ -13,6 +13,12 @@ var isUpdating = false;
 var currentWeapon = 0;
 var currentDamage = 1;
 
+Template.meteoroid.helpers({
+  score: function() {
+    return Session.get("score");
+  }
+});
+
 Template.meteoroid.onRendered(function() {
   game = new Phaser.Game(WIDTH, HEIGHT, Phaser.AUTO, 'meteoroid', { preload: preload, create: create, update: update, render: render });
   window.onbeforeunload = function() {
@@ -48,6 +54,8 @@ function preload() {
 }
 
 function create() {
+  Session.set("score", 0);
+  
   game.stage.disableVisibilityChange = true;
   game.renderer.clearBeforeRender = false;
   game.renderer.roundPixels = true;
@@ -257,7 +265,6 @@ function checkControls() {
 
 function fireBullet (x, y, rotation) {
   if (currentWeapon === 1) {
-    console.log(0);
     if (game.time.now > bulletTime) {
       bullet = bullets.getFirstExists(false);
 
@@ -276,7 +283,6 @@ function fireBullet (x, y, rotation) {
       }
     }
   } else if (currentWeapon === 0) {
-    console.log(1);
     if (game.time.now > bulletTime) {
 
       bullet1 = bullets.getFirstExists(false);
@@ -381,6 +387,7 @@ function killAsteroidIfDead(asteroid) {
     playExplosion(asteroid.body.x, asteroid.body.y);
     asteroid.kill();
     Asteroids.remove(asteroid._id);
+    Session.set("score", Session.get("score") + 10);
   }
 }
 
@@ -400,7 +407,6 @@ function handleAsteroidBounce(asteroid) {
 }
 
 function checkPreventWrap () {
-  // console.log(currentPlayer);
   if (currentPlayer.x < 0) {
     currentPlayer.x = game.width;
   } else if (currentPlayer.x > game.width) {
