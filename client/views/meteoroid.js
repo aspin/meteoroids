@@ -10,7 +10,7 @@ var asteroid, bullet;
 var activePlayer = false;
 var currentWeapon = 0;
 
-var isHost = false;
+var isUpdating = false;
 
 Template.meteoroid.onRendered(function() {
   game = new Phaser.Game(HEIGHT, WIDTH, Phaser.AUTO, 'meteoroid', { preload: preload, create: create, update: update, render: render });
@@ -185,9 +185,9 @@ function setupObservers() {
           if (fields.x && fields.y) {
             asteroidsList[id].reset(fields.x, fields.y);
           }
-          // if (fields.xvel && fields.yvel) {
-          //   asteroidsList[id].body.velocity = new Phaser.Point(fields.xvel, fields.yvel);
-          // }
+          if (fields.xvel && fields.yvel) {
+            asteroidsList[id].body.newVelocity = new Phaser.Point(fields.xvel, fields.yvel);
+          }
         },
         removed: function(id) {
           setTimeout(function(){
@@ -327,17 +327,28 @@ function spaceshipAsteroidHandler (spaceship, asteroid) {
 }
 
 function bulletAsteroidHandler (asteroid, bullets) {
-  // handleAsteroidBounce(asteroid);
+  Asteroids.update(asteroid._id, {$inc: {health: -1}});
+  playExplosion(asteroid.body.x, asteroid.body.y, 0.4);
+  if (Asteroids.findOne(asteroid._id).health <= 0) {
+    playExplosion(asteroid.body.x, asteroid.body.y);
+    asteroid.kill();
+    Asteroids.remove(asteroid._id);
+  }
 }
 
-function playExplosion(x, y) {
+function playExplosion(x, y, scale) {
+  scale = scale || 1;
   var explosion = explosions.getFirstExists(false);
+  explosion.scale.set(scale, scale);
   explosion.reset(x, y);
   explosion.play('explosion', 30, false, true);
 }
 
 function handleAsteroidBounce(asteroid) {
-
+  isUpdating = true;
+  setTimeout(function(){
+      isUpdating = false;
+  }, 400);
 }
 
 function checkPreventWrap () {
@@ -368,17 +379,17 @@ function updateData() {
       }});
     }
 
-    // if (isHost) {
-    //   for (var i in asteroidsList) {
-    //     var asteroid = asteroidsList[i];
-    //     Asteroids.update(asteroid._id, {$set: {
-    //       x: asteroid.x,
-    //       y: asteroid.y,
-    //       xvel: asteroid.body.velocity.x,
-    //       yvel: asteroid.body.velocity.y
-    //     }});
-    //   }
-    // }
+    if (isUpdating) {
+      for (var i in asteroidsList) {
+        var asteroid = asteroidsList[i];
+        Asteroids.update(asteroid._id, {$set: {
+          x: asteroid.x,
+          y: asteroid.y,
+          xvel: asteroid.body.velocity.x,
+          yvel: asteroid.body.velocity.y
+        }});
+      }
+    }
   }
 }
 

@@ -11,7 +11,8 @@ Meteor.methods({
         x: randomX,
         y: randomY,
         xvel: randomXvel,
-        yvel: randomYvel
+        yvel: randomYvel,
+        health: 15
       });
     }
 
