@@ -1,18 +1,18 @@
-var HEIGHT = 1066;
-var WIDTH = 600;
+var WIDTH = 1066;
+var HEIGHT = 600;
 
 currentPlayer = null;
 var game;
 var playerList = {}, asteroidsList = {};
 var cursors, bullet, bulletTime = 0;
-var bullets, asteroids, spaceships, explosions;
+var bullets, asteroids, spaceships, explosions, space;
 var asteroid, bullet;
 var activePlayer = false;
 
 var isUpdating = false;
 
 Template.meteoroid.onRendered(function() {
-  game = new Phaser.Game(HEIGHT, WIDTH, Phaser.AUTO, 'meteoroid', { preload: preload, create: create, update: update, render: render });
+  game = new Phaser.Game(WIDTH, HEIGHT, Phaser.AUTO, 'meteoroid', { preload: preload, create: create, update: update, render: render });
   window.onbeforeunload = function() {
     Players.remove(currentPlayer._id);
     Meteor.call("ping", "Player has disconnected: " + currentPlayer._id);
@@ -47,7 +47,7 @@ function create() {
   game.renderer.clearBeforeRender = false;
   game.renderer.roundPixels = true;
   game.physics.startSystem(Phaser.Physics.ARCADE);
-  game.add.tileSprite(0, 0, game.width, game.height, 'space');
+  space = game.add.tileSprite(0, 0, game.width, game.height, 'space');
 
   asteroids = game.add.group();
   bullets = game.add.group();
@@ -208,6 +208,7 @@ function setupObservers() {
 }
 
 function update() {
+  space.tilePosition.y += 2;
   checkControls();
   checkCollisions();
   checkPreventWrap();
