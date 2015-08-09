@@ -274,7 +274,9 @@ function setupObservers() {
 
       Bullets.find().observeChanges({
         added: function(id, fields) {
-          fireBullet(fields.x, fields.y, fields.rotation, fields.owner, fields.type);
+          if (fields.owner !== currentPlayer._id) {
+            fireBullet(fields.x, fields.y, fields.rotation, fields.owner, fields.type);
+          }
         }
       });
 
@@ -342,7 +344,7 @@ function checkControls() {
 
   if (game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR)) {
     if (currentPlayer.alive) {
-      fireBullet(currentPlayer.body.x, currentPlayer.body.y, currentPlayer.rotation);
+      fireBullet(currentPlayer.body.x, currentPlayer.body.y, currentPlayer.rotation, currentPlayer._id);
     }
   }
 
@@ -369,13 +371,13 @@ function fireBullet (x, y, rotation, owner, type) {
         bulletTime = game.time.now + 50;
 
         if (owner === currentPlayer._id) {
-          Bullets.remove(Bullets.insert({
-          x: bullet.x,
-          y: bullet.y,
-          rotation: bullet.rotation,
-          owner: currentPlayer._id,
-          type: currentWeapon,
-        }));
+          Bullets.insert({
+            x: bullet.x,
+            y: bullet.y,
+            rotation: bullet.rotation,
+            owner: currentPlayer._id,
+            type: currentWeapon,
+          });
         }
       }
     }
@@ -390,13 +392,13 @@ function fireBullet (x, y, rotation, owner, type) {
         game.physics.arcade.velocityFromRotation(rotation + 0.1, 400, bullet1.body.velocity);
 
         if (owner === currentPlayer._id) {
-          Bullets.remove(Bullets.insert({
-          x: bullet1.x,
-          y: bullet1.y,
-          rotation: bullet1.rotation,
-          owner: currentPlayer._id,
-          type: currentWeapon,
-        }));
+          Bullets.insert({
+            x: bullet1.x,
+            y: bullet1.y,
+            rotation: bullet1.rotation,
+            owner: currentPlayer._id,
+            type: currentWeapon,
+          });
         }
       }
 
@@ -408,13 +410,13 @@ function fireBullet (x, y, rotation, owner, type) {
         game.physics.arcade.velocityFromRotation(rotation, 400, bullet2.body.velocity);
 
         if (owner === currentPlayer._id) {
-          Bullets.remove(Bullets.insert({
-          x: bullet2.x,
-          y: bullet2.y,
-          rotation: bullet2.rotation,
-          owner: currentPlayer._id,
-          type: currentWeapon,
-        }));
+          Bullets.insert({
+            x: bullet2.x,
+            y: bullet2.y,
+            rotation: bullet2.rotation,
+            owner: currentPlayer._id,
+            type: currentWeapon,
+          });
         }
       }
 
@@ -427,13 +429,13 @@ function fireBullet (x, y, rotation, owner, type) {
         bulletTime = game.time.now + 500;
 
         if (owner === currentPlayer._id) {
-          Bullets.remove(Bullets.insert({
-          x: bullet3.x,
-          y: bullet3.y,
-          rotation: bullet3.rotation,
-          owner: currentPlayer._id,
-          type: currentWeapon,
-        }));
+          Bullets.insert({
+            x: bullet3.x,
+            y: bullet3.y,
+            rotation: bullet3.rotation,
+            owner: currentPlayer._id,
+            type: currentWeapon,
+          });
         }
       }
     }
@@ -451,13 +453,13 @@ function fireBullet (x, y, rotation, owner, type) {
         bulletTime = game.time.now + 50;
 
         if (owner === currentPlayer._id) {
-          Bullets.remove(Bullets.insert({
-          x: bullet.x,
-          y: bullet.y,
-          rotation: bullet.rotation,
-          owner: currentPlayer._id,
-          type: currentWeapon,
-        }));
+          Bullets.insert({
+            x: bullet.x,
+            y: bullet.y,
+            rotation: bullet.rotation,
+            owner: currentPlayer._id,
+            type: currentWeapon,
+          });
         }
       }
     }
@@ -475,13 +477,13 @@ function fireBullet (x, y, rotation, owner, type) {
         bulletTime = game.time.now + 50;
 
         if (owner === currentPlayer._id) {
-          Bullets.remove(Bullets.insert({
-          x: bullet.x,
-          y: bullet.y,
-          rotation: bullet.rotation,
-          owner: currentPlayer._id,
-          type: currentWeapon,
-        }));
+          Bullets.insert({
+            x: bullet.x,
+            y: bullet.y,
+            rotation: bullet.rotation,
+            owner: currentPlayer._id,
+            type: currentWeapon,
+          });
         }
       }
     }
