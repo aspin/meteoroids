@@ -24,6 +24,8 @@ Template.meteoroid.onRendered(function() {
     var bullet;
     var bullets;
     var bulletTime = 0;
+    
+    var players = {};
 
     function create() {
 
@@ -114,10 +116,14 @@ Template.meteoroid.onRendered(function() {
         
         // ** CUSTOM CODE **
         var me = Players.findOne({_id: Session.get("userId")});
+        if (typeof me === "undefined") {
+          alert("You have been disconnected due to inactivity");
+          return;
+        }
         if (me.x === sprite.x && me.y === sprite.y) {
           // console.log("Not moving, no update");
         } else {
-          Players.update(Session.get("userId"), {
+          Players.update({_id: Session.get("userId")}, {
             x: sprite.x,
             y: sprite.y,
             rotation: sprite.rotation,
@@ -169,7 +175,27 @@ Template.meteoroid.onRendered(function() {
 
     function render() {
       
-      Players.find({})
+      for (var key in players) {
+        if (players.hasOwnProperty(key)) {
+          players[key].destroy();
+        }
+      }
+      
+      var everyone = Players.find({_id: { $ne: Session.get("userId") }});
+      if (everyone.count() > 0) {
+        everyone.forEach(function(myDoc) {
+          playerId = myDoc._id;
+          var newSprite = game.add.sprite(myDoc.x, myDoc.y, 'ship');
+          newSprite.anchor.set(0.5);
+          
+          //  and its physics settings
+          game.physics.enable(newSprite, Phaser.Physics.ARCADE);
+
+          newSprite.body.drag.set(100);
+          newSprite.body.maxVelocity.set(200);
+          
+          players[playerId] = newSprite;
+        });
+      }
     }
-    
 });
