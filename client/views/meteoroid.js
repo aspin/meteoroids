@@ -1,18 +1,19 @@
 var X_MAX = 1066;
 var Y_MAX = 600;
 
-var game, sprite, cursors, bullet, bullets, asteroid, asteroids, randomXPosition, randomYPosition, explosions;
+var playerId, game, sprite, cursors, bullet, bullets, asteroid, asteroids, randomXPosition, randomYPosition, explosions;
 var players = {};
 var activePlayer = false;
 var bulletTime = 0;
 
 Template.meteoroid.onRendered(function() {
   game = new Phaser.Game(X_MAX, Y_MAX, Phaser.AUTO, 'phaser-example', { preload: preload, create: create, update: update, render: render });
+  window.onbeforeunload = function() { Players.remove(playerId); };
 });
 
-// Template.name.onDestroyed(function(){
-//   Players.remove(Session.get('playerId'));
-// });
+Template.meteoroid.onDestroyed(function(){
+  Players.remove(playerId);
+});
 
 
 function preload() {
@@ -77,19 +78,18 @@ function create() {
   game.input.keyboard.addKeyCapture([ Phaser.Keyboard.SPACEBAR ]);
 
   // Initialize database with location
-  // console.log(Session.get("userId"));
+  // console.log(playerId);
   // console.log(sprite.x + sprite.y);
   if (Players.find().count() >= 4) {
     alert("You may join, but others cannot see you");
   } else {
     activePlayer = true;
-    var id = Players.insert({
+    playerId = Players.insert({
       x: sprite.x,
       y: sprite.y,
       rotation: sprite.rotation,
       createdAt: new Date()
     });
-    Session.set("userId", id);
   }
 }
 
@@ -119,6 +119,7 @@ function update() {
 
   // ** CUSTOM CODE **
   if (activePlayer) {
+<<<<<<< HEAD
     var me = Players.findOne({ _id: Session.get("userId") });
     if (me.x === sprite.x && me.y === sprite.y && me.rotation === sprite.rotation) {
       console.log("no change");
@@ -130,6 +131,14 @@ function update() {
         createdAt: new Date()
       }});
     }
+=======
+    Players.update({_id: playerId}, {$set: {
+      x: sprite.x,
+      y: sprite.y,
+      rotation: sprite.rotation,
+      createdAt: new Date()
+    }});
+>>>>>>> added plyaer unloading
   }
 }
 
@@ -177,7 +186,7 @@ function render() {
     players[key].destroy();
   }
 
-  var everyone = Players.find({_id: { $ne: Session.get("userId") }});
+  var everyone = Players.find({_id: { $ne: playerId }});
   everyone.forEach(function(myDoc) {
     playerId = myDoc._id;
     var newSprite = game.add.sprite(myDoc.x, myDoc.y, 'ship');

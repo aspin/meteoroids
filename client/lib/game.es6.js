@@ -8,7 +8,7 @@ class Game {
     this.players.push(new Player(playerName));
   }
 
-  addPlayers(playerNamess) {
+  addPlayers(playerNames) {
     for(let playerName of playerNames) {
       addPlayer(playerName);
     }

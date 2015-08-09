@@ -14,5 +14,9 @@ Meteor.methods({
     var inactivePlayers = Players.find({ createdAt: { $lt: t } }).count();
     var totalPlayers = Players.find({}).count();
     Players.remove({ createdAt: { $lt: t } });
+  },
+  removePlayer: function(id) {
+    console.log(id);
+    Players.remove({ _id: id });
   }
 });
