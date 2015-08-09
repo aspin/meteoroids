@@ -77,6 +77,23 @@ Meteor.methods({
       count += 1;
     });
   },
+  levelFour: function(numAsteroids = 0, Xmax = 1066, Ymax = 600) {
+    console.log("starting level four");
+    Asteroids.remove({});
+    var randomX = Math.floor(Math.random() * Xmax);
+    var randomY = Math.floor(Math.random() * Ymax);
+    var randomXvel = Math.floor(Math.random() * 500) - 250;
+    var randomYvel = Math.floor(Math.random() * 500) - 250;
+    bossPlayer.insert({
+        x: randomX,
+        y: randomY,
+        xvel: randomXvel,
+        yvel: randomYvel,
+        health: Math.floor(Math.random() * 250)
+    });
+
+
+  },
   removeInactive: function() {
     // remove players that haven't been active in 30 seconds
     // var t = new Date();

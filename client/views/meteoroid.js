@@ -30,6 +30,15 @@ Template.meteoroid.events({
   },
   "click #levelThree": function(event, template){
     Meteor.call("levelThree");
+  },
+  "click #levelFour": function(event, template){
+    Meteor.call("levelFour");
+    bossPlayer = game.add.sprite(300, 500, 'boss');
+    bossPlayer.anchor.setTo(0.5);
+    bossPlayer.enableBody= true;
+    bossPlayer.collideWorldBounds= true;
+    game.physics.arcade.enable(bossPlayer, Phaser.Physics.ARCADE);
+
   }
 });
 
@@ -41,9 +50,10 @@ function preload() {
   game.load.image('space', 'assets/skies/deep-space.jpg');
   game.load.image('bullet', 'assets/games/asteroids/bullets.png');
   game.load.image('ship', 'assets/games/asteroids/ship3.png');
+  game.load.image('boss', 'assets/games/asteroids/boss.png');
   game.load.image('asteroid', 'assets/games/asteroids/asteroid.png');
   game.load.image('fire', 'assets/games/asteroids/fire.png');
-  game.load.spritesheet('flame', 'assets/games/asteroids/flame.png', 128, 128)
+  game.load.spritesheet('flame', 'assets/games/asteroids/flame.png', 128, 128);
   game.load.spritesheet('explosion', 'assets/games/asteroids/explode.png', 128, 128);
 }
 
@@ -94,6 +104,7 @@ function setupGroups() {
 
   game.physics.arcade.enable(asteroids, Phaser.Physics.ARCADE);
   game.physics.arcade.enable(spaceships, Phaser.Physics.ARCADE);
+  game.physics.arcade.enable(bossPlayer, Phaser.Physics.ARCADE);
 }
 
 function setupControls() {
@@ -349,7 +360,27 @@ function checkCollisions() {
   game.physics.arcade.collide(asteroids, currentPlayer, spaceshipAsteroidHandler);
   game.physics.arcade.collide(asteroids, flames, flameAsteroidHandler);
   game.physics.arcade.collide(asteroids, bullets, bulletAsteroidHandler);
+  game.physics.arcade.collide(bossPlayer, currentPlayer, bossCurrentPlayerHandler);
+  game.physics.arcade.collide(bossPlayer, bullets, bossBulletHandler);
+
 }
+
+function bossCurrentPlayerHandler (bossPlayer, currentPlayer) {
+  playExplosion(currentPlayer.body.x, currentPlayer.body.y);
+  currentPlayer.kill();
+  Players.update(currentPlayer._id, {$set: {
+    status: 'dead'
+  }});
+}
+
+function bossBulletHandler (bossPlayer, currentPlayer) {
+  bossPlayer.update(bossPlayer._id, {$inc: {health: -1}});
+  playExplosion(bossPlayer.body.x, bossPlayer.body.y, 0.4);
+  killAsteroidIfDead(bossPlayer);
+}
+
+
+
 
 function spaceshipAsteroidHandler (spaceship, asteroid) {
   playExplosion(spaceship.body.x, spaceship.body.y);
@@ -381,6 +412,15 @@ function killAsteroidIfDead(asteroid) {
     playExplosion(asteroid.body.x, asteroid.body.y);
     asteroid.kill();
     Asteroids.remove(asteroid._id);
+  }
+}
+
+function killbossPlayerIfDead(bossPlayer) {
+  var boss = bossPlayer.findOne(bossPlayer._id)
+  if (boss && boss.health <= 0) {
+    playExplosion(bossPlayer.body.x, bossPlayer.body.y);
+    bossPlayer.kill();
+    bossPlayer.remove(bossPlayer._id);
   }
 }
 
