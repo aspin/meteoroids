@@ -119,7 +119,7 @@ function update() {
 
   // ** CUSTOM CODE **
   if (activePlayer) {
-    var me = Players.findOne({ _id: Session.get("userId") });
+    var me = Players.findOne({ _id: playerId });
     if (me.x === sprite.x && me.y === sprite.y && me.rotation === sprite.rotation) {
       console.log("no change");
     } else {
