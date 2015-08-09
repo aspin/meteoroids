@@ -63,10 +63,10 @@ function create() {
   explosions = game.add.group();
   explosions.createMultiple(30, 'explosion');
 
-  explosions.forEach(function(asteroid) {
-    asteroid.anchor.x = 0.5;
-    asteroid.anchor.y = 0.5;
-    asteroid.animations.add('explosion');
+  explosions.forEach(function(explosion) {
+    explosion.anchor.x = 0.5;
+    explosion.anchor.y = 0.5;
+    explosion.animations.add('explosion');
   }, this);
 
   //  Game input
