@@ -9,7 +9,7 @@ var bullets, asteroids, spaceships, explosions;
 var asteroid, bullet;
 var activePlayer = false;
 
-var isHost = false;
+var isUpdating = false;
 
 Template.meteoroid.onRendered(function() {
   game = new Phaser.Game(HEIGHT, WIDTH, Phaser.AUTO, 'meteoroid', { preload: preload, create: create, update: update, render: render });
@@ -184,9 +184,9 @@ function setupObservers() {
           if (fields.x && fields.y) {
             asteroidsList[id].reset(fields.x, fields.y);
           }
-          // if (fields.xvel && fields.yvel) {
-          //   asteroidsList[id].body.velocity = new Phaser.Point(fields.xvel, fields.yvel);
-          // }
+          if (fields.xvel && fields.yvel) {
+            asteroidsList[id].body.newVelocity = new Phaser.Point(fields.xvel, fields.yvel);
+          }
         },
         removed: function(id) {
           setTimeout(function(){
@@ -290,7 +290,10 @@ function playExplosion(x, y, scale) {
 }
 
 function handleAsteroidBounce(asteroid) {
-
+  isUpdating = true;
+  setTimeout(function(){
+      isUpdating = false;
+  }, 400);
 }
 
 function checkPreventWrap () {
@@ -321,17 +324,17 @@ function updateData() {
       }});
     }
 
-    // if (isHost) {
-    //   for (var i in asteroidsList) {
-    //     var asteroid = asteroidsList[i];
-    //     Asteroids.update(asteroid._id, {$set: {
-    //       x: asteroid.x,
-    //       y: asteroid.y,
-    //       xvel: asteroid.body.velocity.x,
-    //       yvel: asteroid.body.velocity.y
-    //     }});
-    //   }
-    // }
+    if (isUpdating) {
+      for (var i in asteroidsList) {
+        var asteroid = asteroidsList[i];
+        Asteroids.update(asteroid._id, {$set: {
+          x: asteroid.x,
+          y: asteroid.y,
+          xvel: asteroid.body.velocity.x,
+          yvel: asteroid.body.velocity.y
+        }});
+      }
+    }
   }
 }
 
