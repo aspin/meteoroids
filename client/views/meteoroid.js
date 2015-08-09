@@ -16,6 +16,10 @@ var currentDamage = 1;
 Template.meteoroid.helpers({
   score: function() {
     return Session.get("score");
+  },
+  scoreboard: function() {
+    // return Scoreboard.find({}).sort({ score: -1 }).limit(10);
+    return Scoreboard.find({}, {sort: { score: -1 }}, { limit: 10 });
   }
 });
 
