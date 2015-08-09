@@ -18,7 +18,7 @@ Meteor.methods({
     }
 
     var count = 0;
-    var coord = [[50, 50], [50, 550], [950, 550], [950, 50]];
+    var coord = [[50, 50], [50, 550], [700, 550], [700, 50]];
     Players.find().forEach(function(player) {
       console.log(coord[count][0],coord[count][1]);
       Players.update(player._id, {$set: {status: 'reset', x: coord[count][0], y: coord[count][1]}});
@@ -44,7 +44,7 @@ Meteor.methods({
     }
 
     var count = 0;
-    var coord = [[50, 50], [50, 550], [950, 550], [950, 50]];
+    var coord = [[50, 50], [50, 550], [700, 550], [700, 50]];
     Players.find().forEach(function(player) {
       console.log(coord[count][0],coord[count][1]);
       Players.update(player._id, {$set: {status: 'reset', x: coord[count][0], y: coord[count][1]}});
@@ -70,7 +70,7 @@ Meteor.methods({
     }
 
     var count = 0;
-    var coord = [[50, 50], [50, 550], [950, 550], [950, 50]];
+    var coord = [[50, 50], [50, 550], [700, 550], [700, 50]];
     Players.find().forEach(function(player) {
       console.log(coord[count][0],coord[count][1]);
       Players.update(player._id, {$set: {status: 'reset', x: coord[count][0], y: coord[count][1]}});

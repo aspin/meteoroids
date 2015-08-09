@@ -216,7 +216,7 @@ function setupObservers() {
 
       Bullets.find().observeChanges({
         added: function(id, fields) {
-          fireBullet(fields.x, fields.y, fields.rotation);
+          fireBullet(fields.x, fields.y, fields.rotation, fields.owner, fields.type);
         }
       })
     });
@@ -255,9 +255,8 @@ function checkControls() {
   }
 }
 
-function fireBullet (x, y, rotation) {
-  if (currentWeapon === 1) {
-    console.log(0);
+function fireBullet (x, y, rotation, owner, type) {
+  if (type === 1 || currentWeapon === 1) {
     if (game.time.now > bulletTime) {
       bullet = bullets.getFirstExists(false);
 
@@ -268,15 +267,18 @@ function fireBullet (x, y, rotation) {
         game.physics.arcade.velocityFromRotation(rotation, 400, bullet.body.velocity);
         bulletTime = game.time.now + 50;
 
-        Bullets.insert({
+        if (owner === currentPlayer._id) {
+          Bullets.remove(Bullets.insert({
           x: bullet.x,
           y: bullet.y,
           rotation: bullet.rotation,
-        });
+          owner: currentPlayer._id,
+          type: currentWeapon,
+        }));
+        }
       }
     }
-  } else if (currentWeapon === 0) {
-    console.log(1);
+  } else if (type === 0 || currentWeapon === 0) {
     if (game.time.now > bulletTime) {
 
       bullet1 = bullets.getFirstExists(false);
@@ -286,11 +288,15 @@ function fireBullet (x, y, rotation) {
         bullet1.rotation = rotation;
         game.physics.arcade.velocityFromRotation(rotation + 0.1, 400, bullet1.body.velocity);
 
-        Bullets.insert({
+        if (owner === currentPlayer._id) {
+          Bullets.remove(Bullets.insert({
           x: bullet1.x,
           y: bullet1.y,
           rotation: bullet1.rotation,
-        });
+          owner: currentPlayer._id,
+          type: currentWeapon,
+        }));
+        }
       }
 
       bullet2 = bullets.getFirstExists(false);
@@ -300,11 +306,15 @@ function fireBullet (x, y, rotation) {
         bullet2.rotation = rotation;
         game.physics.arcade.velocityFromRotation(rotation, 400, bullet2.body.velocity);
 
-        Bullets.insert({
+        if (owner === currentPlayer._id) {
+          Bullets.remove(Bullets.insert({
           x: bullet2.x,
           y: bullet2.y,
           rotation: bullet2.rotation,
-        });
+          owner: currentPlayer._id,
+          type: currentWeapon,
+        }));
+        }
       }
 
       bullet3 = bullets.getFirstExists(false);
@@ -315,33 +325,41 @@ function fireBullet (x, y, rotation) {
         game.physics.arcade.velocityFromRotation(rotation - 0.1, 400, bullet3.body.velocity);
         bulletTime = game.time.now + 500;
 
-        Bullets.insert({
+        if (owner === currentPlayer._id) {
+          Bullets.remove(Bullets.insert({
           x: bullet3.x,
           y: bullet3.y,
           rotation: bullet3.rotation,
-        });
-      }
-    }
-  } else if (currentWeapon === 2) {
-      if (game.time.now > bulletTime) {
-        bullet = flames.getFirstExists(false);
-
-        if (bullet) {
-          bullet.reset(x + 15, y + 15);
-          bullet.lifespan = 2000;
-          bullet.rotation = rotation;
-          bullet.play('flame', 30, true, true);
-
-          game.physics.arcade.velocityFromRotation(rotation, 400, bullet.body.velocity);
-          bulletTime = game.time.now + 50;
-
-          Bullets.remove(Bullets.insert({
-            x: bullet.x,
-            y: bullet.y,
-            rotation: bullet.rotation,
-          }));
+          owner: currentPlayer._id,
+          type: currentWeapon,
+        }));
         }
       }
+    }
+  } else if (type === 2 || currentWeapon === 2) {
+    if (game.time.now > bulletTime) {
+      bullet = flames.getFirstExists(false);
+
+      if (bullet) {
+        bullet.reset(x + 15, y + 15);
+        bullet.lifespan = 2000;
+        bullet.rotation = rotation;
+        bullet.play('flame', 30, true, true);
+
+        game.physics.arcade.velocityFromRotation(rotation, 400, bullet.body.velocity);
+        bulletTime = game.time.now + 50;
+
+        if (owner === currentPlayer._id) {
+          Bullets.remove(Bullets.insert({
+          x: bullet.x,
+          y: bullet.y,
+          rotation: bullet.rotation,
+          owner: currentPlayer._id,
+          type: currentWeapon,
+        }));
+        }
+      }
+    }
   }
 }
 
