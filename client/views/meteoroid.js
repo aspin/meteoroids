@@ -5,7 +5,7 @@ currentPlayer = null;
 var game;
 var playerList = {}, asteroidsList = {};
 var cursors, bullet, bulletTime = 0;
-var bullets, flames, asteroids, spaceships, explosions, space;
+var bullets, flames, eballs, eballexplodes, asteroids, spaceships, explosions, space;
 var asteroid, bullet;
 var activePlayer = false;
 var isUpdating = false;
@@ -45,6 +45,8 @@ function preload() {
   game.load.image('fire', 'assets/games/asteroids/fire.png');
   game.load.spritesheet('flame', 'assets/games/asteroids/flame.png', 128, 128)
   game.load.spritesheet('explosion', 'assets/games/asteroids/explode.png', 128, 128);
+  game.load.spritesheet('eball', 'assets/games/asteroids/eball.png', 96, 96);
+  game.load.spritesheet('eballexplode', 'assets/games/asteroids/eballexplode.png', 96, 96);
 }
 
 function create() {
@@ -57,6 +59,8 @@ function create() {
   asteroids = game.add.group();
   bullets = game.add.group();
   flames = game.add.group();
+  eballs = game.add.group();
+  eballexplodes = game.add.group();
   spaceships = game.add.group();
   explosions = game.add.group();
 
@@ -85,11 +89,27 @@ function setupGroups() {
     flame.animations.add('flame');
   });
 
+  eballs.enableBody = true;
+  eballs.physicsBodyType = Phaser.Physics.ARCADE;
+  eballs.createMultiple(5, 'eball');
+  eballs.setAll('anchor.x', 0.5);
+  eballs.setAll('anchor.y', 0.5);
+  eballs.forEach(function(eball) {
+    eball.animations.add('eball');
+  });
+
   explosions.createMultiple(30, 'explosion');
   explosions.forEach(function(explosion) {
     explosion.anchor.x = 0.5;
     explosion.anchor.y = 0.5;
     explosion.animations.add('explosion');
+  });
+
+  eballexplodes.createMultiple(30, 'eballexplode');
+  eballexplodes.forEach(function(eballexplode) {
+    eballexplode.anchor.x = 0.5;
+    eballexplode.anchor.y = 0.5;
+    eballexplode.animations.add('eballexplode');
   });
 
   game.physics.arcade.enable(asteroids, Phaser.Physics.ARCADE);
@@ -251,7 +271,7 @@ function checkControls() {
   }
 
   if (game.input.keyboard.isDown(Phaser.Keyboard.SHIFT)) {
-    currentWeapon = (currentWeapon + 1) % 3;
+    currentWeapon = (currentWeapon + 1) % 4;
   }
 }
 
@@ -360,6 +380,30 @@ function fireBullet (x, y, rotation, owner, type) {
         }
       }
     }
+  } else if (type === 3 || currentWeapon === 3) {
+    if (game.time.now > bulletTime) {
+      bullet = eballs.getFirstExists(false);
+
+      if (bullet) {
+        bullet.reset(x + 15, y + 15);
+        bullet.lifespan = 2000;
+        bullet.rotation = rotation;
+        bullet.play('eball', 30, true, true);
+
+        game.physics.arcade.velocityFromRotation(rotation, 400, bullet.body.velocity);
+        bulletTime = game.time.now + 50;
+
+        if (owner === currentPlayer._id) {
+          Bullets.remove(Bullets.insert({
+          x: bullet.x,
+          y: bullet.y,
+          rotation: bullet.rotation,
+          owner: currentPlayer._id,
+          type: currentWeapon,
+        }));
+        }
+      }
+    }
   }
 }
 
@@ -367,6 +411,7 @@ function checkCollisions() {
   game.physics.arcade.collide(asteroids, currentPlayer, spaceshipAsteroidHandler);
   game.physics.arcade.collide(asteroids, flames, flameAsteroidHandler);
   game.physics.arcade.collide(asteroids, bullets, bulletAsteroidHandler);
+  game.physics.arcade.collide(asteroids, eballs, eballAsteroidHandler);
 }
 
 function spaceshipAsteroidHandler (spaceship, asteroid) {
@@ -390,6 +435,15 @@ function flameAsteroidHandler (asteroid, flame) {
 function bulletAsteroidHandler (asteroid, bullet) {
   Asteroids.update(asteroid._id, {$inc: {health: -1}});
   playExplosion(asteroid.body.x, asteroid.body.y, 0.4);
+  killAsteroidIfDead(asteroid);
+}
+
+function eballAsteroidHandler (asteroid, eball) {
+  eball.kill()
+  Asteroids.update(asteroid._id, {$inc: {health: -2}});
+  var eballexplode = eballexplodes.getFirstExists(false);
+  eballexplode.reset(asteroid.body.x, asteroid.body.y);
+  eballexplode.play('eballexplode', 30, false, true);
   killAsteroidIfDead(asteroid);
 }
 
