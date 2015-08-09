@@ -10,3 +10,5 @@ iron:router
 digioak:meteor-phaser
 grigio:babel
 sacha:spin
+accounts-ui
+accounts-password

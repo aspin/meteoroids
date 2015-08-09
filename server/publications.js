@@ -14,4 +14,8 @@ Meteor.publish('asteroids', function(){
 
 Meteor.publish('bullets', function() {
   return Bullets.find();
-})
+});
+
+Meteor.publish('scoreboard', function() {
+  return Scoreboard.find();
+});
