@@ -116,6 +116,7 @@ function setupObservers() {
             var player = spaceships.create(fields.x, fields.y, 'ship');
             player._id = id;
             player.rotation = fields.rotation;
+            player.tint = fields.tint;
             player.anchor.setTo(0.5);
             playerList[id] = player;
           }
