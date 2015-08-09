@@ -9,9 +9,16 @@
   margin: 10px auto;
 }
 
+h4 {
+  color: white;
+  position: absolute;
+  top: 0;
+  right: 15px;
+}
+
 p {
   color: white;
   position: absolute;
   bottom: 0;
-  right: 10px;
+  right: 15px;
 }
