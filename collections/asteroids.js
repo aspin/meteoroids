@@ -12,6 +12,12 @@ Asteroids.allow({
   }
 });
 
+
+
+
+
 // {
-//   position: (x, y)
+//   x: x,
+//   y: y,
+//   game: gameName
 // }

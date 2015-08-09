@@ -1,21 +1,10 @@
 Meteor.methods({
-  addPlayer: function(id, x, y, rotation) {
-    if (Players())
-    Players.insert({
-      _id: id,
-      x: x,
-      y: y,
-      rotation: rotation,
-      createdAt: new Date()
-    });
-  },
-  updatePlayer: function(id, x, y, rotation) {
-    Players.update({_id: id}, {
-      x: x,
-      y: y,
-      rotation: rotation,
-      createdAt: new Date()
-    });
+  createAsteroids: function(num, Xmax, Ymax) {
+    for(var i = 0; i < num; i++) {
+      var randomX = Math.floor(Math.random() * Xmax);
+      var randomY = Math.floor(Math.random() * Ymax);
+      Asteroids.insert({x: randomX, y: randomY});
+    }
   },
   removeInactive: function() {
     // remove players that haven't been active in 30 seconds
