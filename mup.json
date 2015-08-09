@@ -1,0 +1,28 @@
+{
+  // Server authentication info
+  "servers": [
+    {
+      "host": "45.55.25.239",
+      "username": "root",
+      "pem": "~/.ssh/id_rsa"
+    }
+  ],
+
+  "setupMongo": true,
+  "setupNode": true,
+  "nodeVersion": "0.10.36",
+  "setupPhantom": true,
+  "enableUploadProgressBar": true,
+
+  "appName": "meteroids",
+
+  // Location of app (local directory)
+  "app": "/Users/aspin/meteoroids",
+
+  // Configure environment
+  "env": {
+    "ROOT_URL": "http://45.55.25.239"
+  },
+
+  "deployCheckWaitTime": 15
+}
