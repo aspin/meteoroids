@@ -33,6 +33,7 @@ Template.meteoroid.onRendered(function() {
     var explosions;
     
     var players = {};
+    var activePlayer = false;
 
     function create() {
 
@@ -47,7 +48,6 @@ Template.meteoroid.onRendered(function() {
         game.add.tileSprite(0, 0, game.width, game.height, 'space');
 
         // Create asteroid in random positions 
-        
         asteroids = game.add.group();
         asteroids.enableBody = true;
         asteroids.physicsBodyType = Phaser.Physics.ARCADE;
@@ -93,21 +93,25 @@ Template.meteoroid.onRendered(function() {
         game.input.keyboard.addKeyCapture([ Phaser.Keyboard.SPACEBAR ]);
         
         // ** CUSTOM CODE **
-        var id = parseInt(Math.random() * 1000000).toString();
+        var = parseInt(Math.random() * 1000000).toString();
         Session.set("userId", id);
         // console.log("player " + Session.get("userId") + " at location (" + sprite.x + "," + sprite.y + ")");
         
         // Initialize database with location
         // console.log(Session.get("userId"));
         // console.log(sprite.x + sprite.y);
-        Players.insert({
-          _id: Session.get("userId"),
-          x: sprite.x,
-          y: sprite.y,
-          rotation: sprite.rotation,
-          createdAt: new Date()
-        });
-
+        if (Players.find().count() >= 4) {
+          alert("You may join, but others cannot see you");
+        } else {
+          activePlayer = true;
+          Players.insert({
+            _id: Session.get("userId"),
+            x: sprite.x,
+            y: sprite.y,
+            rotation: sprite.rotation,
+            createdAt: new Date()
+          });
+        }
     }
 
     function update() {
@@ -145,14 +149,7 @@ Template.meteoroid.onRendered(function() {
         bullets.forEachExists(screenWrap, this);
         
         // ** CUSTOM CODE **
-        var me = Players.findOne({_id: Session.get("userId")});
-        if (typeof me === "undefined") {
-          alert("You have been disconnected due to inactivity");
-          return;
-        }
-        if (me.x === sprite.x && me.y === sprite.y) {
-          // console.log("Not moving, no update");
-        } else {
+        if (activePlayer) {
           Players.update({_id: Session.get("userId")}, {
             x: sprite.x,
             y: sprite.y,
@@ -160,7 +157,6 @@ Template.meteoroid.onRendered(function() {
             createdAt: new Date()
           });
         }
-        
     }
     function setupAsteroid (asteroid) {
         asteroid.anchor.x = 0.5;
@@ -177,67 +173,58 @@ Template.meteoroid.onRendered(function() {
 
     function fireBullet () {
 
-        if (game.time.now > bulletTime)
-        {
-            bullet = bullets.getFirstExists(false);
+      if (game.time.now > bulletTime)
+      {
+        bullet = bullets.getFirstExists(false);
 
-            if (bullet)
-            {
-                bullet.reset(sprite.body.x + 16, sprite.body.y + 16);
-                bullet.lifespan = 2000;
-                bullet.rotation = sprite.rotation;
-                game.physics.arcade.velocityFromRotation(sprite.rotation, 400, bullet.body.velocity);
-                bulletTime = game.time.now + 50;
-            }
+        if (bullet)
+        {
+          bullet.reset(sprite.body.x + 16, sprite.body.y + 16);
+          bullet.lifespan = 2000;
+          bullet.rotation = sprite.rotation;
+          game.physics.arcade.velocityFromRotation(sprite.rotation, 400, bullet.body.velocity);
+          bulletTime = game.time.now + 50;
         }
+      }
 
     }
 
     function screenWrap (sprite) {
 
-        if (sprite.x < 0)
-        {
-            sprite.x = game.width;
-        }
-        else if (sprite.x > game.width)
-        {
-            sprite.x = 0;
-        }
+      if (sprite.x < 0)
+      {
+          sprite.x = game.width;
+      }
+      else if (sprite.x > game.width)
+      {
+          sprite.x = 0;
+      }
 
-        if (sprite.y < 0)
-        {
-            sprite.y = game.height;
-        }
-        else if (sprite.y > game.height)
-        {
-            sprite.y = 0;
-        }
-
+      if (sprite.y < 0)
+      {
+          sprite.y = game.height;
+      }
+      else if (sprite.y > game.height)
+      {
+          sprite.y = 0;
+      }
     }
 
     function render() {
       
-      for (var key in players) {
-        if (players.hasOwnProperty(key)) {
-          players[key].destroy();
-        }
+      for (key in players) {
+        players[key].destroy();
       }
       
       var everyone = Players.find({_id: { $ne: Session.get("userId") }});
-      if (everyone.count() > 0) {
-        everyone.forEach(function(myDoc) {
-          playerId = myDoc._id;
-          var newSprite = game.add.sprite(myDoc.x, myDoc.y, 'ship');
-          newSprite.anchor.set(0.5);
-          
-          //  and its physics settings
-          game.physics.enable(newSprite, Phaser.Physics.ARCADE);
-
-          newSprite.body.drag.set(100);
-          newSprite.body.maxVelocity.set(200);
-          
-          players[playerId] = newSprite;
-        });
-      }
+      everyone.forEach(function(myDoc) {
+        playerId = myDoc._id;
+        var newSprite = game.add.sprite(myDoc.x, myDoc.y, 'ship');
+        newSprite.rotation = myDoc.rotation;
+        newSprite.anchor.set(0.5);
+        
+        players[playerId] = newSprite;
+      });
+      
     }
 });
