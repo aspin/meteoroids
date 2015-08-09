@@ -213,9 +213,11 @@ function spaceshipAsteroidHandler (spaceship, asteroid) {
   playExplosion(spaceship.body.x, spaceship.body.y);
   handleAsteroidBounce(asteroid);
   spaceship.kill();
+  asteroid.kill();
   Players.update(currentPlayer._id, {$set: {
     status: 'dead'
-  }})
+  }});
+  Asteroids.remove(asteroid._id);
 }
 
 function bulletAsteroidHandler (asteroid, bullets) {
