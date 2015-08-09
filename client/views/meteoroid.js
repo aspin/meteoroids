@@ -16,8 +16,6 @@ Template.meteoroid.events({
     Meteor.call("startGame", function(error, result){
       if(error){
         console.log("error", error);
-      } else {
-        drawAsteroids();
       }
     });
   }
@@ -107,12 +105,16 @@ function create() {
 
     Asteroids.find().observeChanges({
       added: function(id, fields) {
-        drawAsteroids();
+        drawAsteroid(id, fields.x, fields.y, fields.xvel, fields.yvel);
       },
       removed: function(id) {
         asteroids.forEach(function(asteroid) {
           if (asteroid._id == id) {
-            asteroid.kill();
+            setTimeout(function(){
+              if (asteroid) {
+                asteroid.kill(); 
+              }
+            }, 500);
           }
         })
       }
@@ -121,7 +123,6 @@ function create() {
 }
 
 function update() {
-
   if (cursors.up.isDown) {
     game.physics.arcade.accelerationFromRotation(playerSpaceship.rotation, 200, playerSpaceship.body.acceleration);
   } else {
@@ -161,13 +162,13 @@ function update() {
   }
 }
 
-function collisionHandler (playerSpaceship, asteroid) {
+function collisionHandler (spaceship, asteroid) {
   console.log('collision!');
-  console.log(playerSpaceship);
+  console.log(spaceship);
   Asteroids.remove({_id: asteroid._id});
   asteroid.kill();
   var explosion = explosions.getFirstExists(false);
-  explosion.reset(playerSpaceship.body.x, playerSpaceship.body.y);
+  explosion.reset(spaceship.body.x, spaceship.body.y);
   explosion.play('explosion', 30, false, true);
 }
 
@@ -209,15 +210,14 @@ function addPlayer(player) {
   var newSpaceship = game.add.sprite(player.x, player.y, 'ship');
   newSpaceship.rotation = player.rotation;
   newSpaceship.anchor.set(0.5);
+  game.physics.enable(newSpaceship, Phaser.Physics.ARCADE);
   players[player._id] = newSpaceship;
 }
 
-function drawAsteroids() {
-  Asteroids.find().forEach(function(ast) {
-    asteroid = asteroids.create(ast.x, ast.y, 'asteroid');
-    asteroid.body.velocity = new Phaser.Point(ast.xvel, ast.yvel);
-    asteroid.body.collideWorldBounds=true;
-    asteroid.body.bounce.setTo(1, 1);
-    asteroid._id = ast._id;
-  });
+function drawAsteroid(id, x, y, xvel, yvel) {
+  asteroid = asteroids.create(x, y, 'asteroid');
+  asteroid.body.velocity = new Phaser.Point(xvel, yvel);
+  asteroid.body.collideWorldBounds=true;
+  asteroid.body.bounce.setTo(1, 1);
+  asteroid._id = id;
 }
