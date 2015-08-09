@@ -133,7 +133,7 @@ function setupObservers() {
               playExplosion(player.x, player.y);
               player.kill();
             }
-            else {
+            else if (fields.status == 'reset'){
               if (player) {
                 player.x = fields.x;
                 player.y = fields.y;
