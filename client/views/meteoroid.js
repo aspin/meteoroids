@@ -245,11 +245,11 @@ function fireBullet (x, y, rotation) {
       game.physics.arcade.velocityFromRotation(rotation, 400, bullet.body.velocity);
       bulletTime = game.time.now + 50;
 
-      Bullets.insert({
+      Bullets.remove(Bullets.insert({
         x: bullet.x,
         y: bullet.y,
         rotation: bullet.rotation,
-      });
+      }));
     }
   }
 }
@@ -273,6 +273,7 @@ function spaceshipAsteroidHandler (spaceship, asteroid) {
 
 function bulletAsteroidHandler (asteroid, bullets) {
   Asteroids.update(asteroid._id, {$inc: {health: -1}});
+  playExplosion(asteroid.body.x, asteroid.body.y, 0.4);
   if (Asteroids.findOne(asteroid._id).health <= 0) {
     playExplosion(asteroid.body.x, asteroid.body.y);
     asteroid.kill();
@@ -280,8 +281,10 @@ function bulletAsteroidHandler (asteroid, bullets) {
   }
 }
 
-function playExplosion(x, y) {
+function playExplosion(x, y, scale) {
+  scale = scale || 1;
   var explosion = explosions.getFirstExists(false);
+  explosion.scale.set(scale, scale);
   explosion.reset(x, y);
   explosion.play('explosion', 30, false, true);
 }
