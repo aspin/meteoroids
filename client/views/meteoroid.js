@@ -13,6 +13,10 @@ var isUpdating = false;
 var currentWeapon = 0;
 var currentDamage = 1;
 
+Accounts.ui.config({
+    passwordSignupFields: "USERNAME_ONLY"
+});
+
 Template.meteoroid.helpers({
   score: function() {
     return Session.get("score");
@@ -457,6 +461,36 @@ function bossCurrentPlayerHandler (bossPlayer, currentPlayer) {
   Players.update(currentPlayer._id, {$set: {
     status: 'dead'
   }});
+  
+  if(Meteor.user()) {
+    var username = Meteor.user().username;
+    var score = Scoreboard.findOne(username);
+    // console.log(score);
+    
+    if (score) {
+      
+      var oldScore = score.score;
+      var newScore = Session.get("score");
+      // console.log("existing score found, old: " + oldScore + " new: " + newScore);
+      
+      if (newScore > oldScore) {
+        Scoreboard.update({_id: username}, {$set: {
+          score: newScore,
+          createdAt: new Date()
+        }});
+        // console.log("overwriting");
+      }
+    } else {
+      // console.log("inserting new score");
+      Scoreboard.insert({
+        _id: username,
+        score: Session.get("score"),
+        createdAt: new Date()
+      });
+    }
+  } else {
+    // console.log("not logged in");
+  }
 
 }
 
@@ -476,6 +510,36 @@ function spaceshipAsteroidHandler (spaceship, asteroid) {
     status: 'dead'
   }});
   Asteroids.remove(asteroid._id);
+  
+  if(Meteor.user()) {
+    var username = Meteor.user().username;
+    var score = Scoreboard.findOne(username);
+    // console.log(score);
+    
+    if (score) {
+      
+      var oldScore = score.score;
+      var newScore = Session.get("score");
+      // console.log("existing score found, old: " + oldScore + " new: " + newScore);
+      
+      if (newScore > oldScore) {
+        Scoreboard.update({_id: username}, {$set: {
+          score: newScore,
+          createdAt: new Date()
+        }});
+        // console.log("overwriting");
+      }
+    } else {
+      // console.log("inserting new score");
+      Scoreboard.insert({
+        _id: username,
+        score: Session.get("score"),
+        createdAt: new Date()
+      });
+    }
+  } else {
+    // console.log("not logged in");
+  }
 }
 
 function flameAsteroidHandler (asteroid, flame) {
