@@ -26,6 +26,7 @@ Template.meteoroid.onRendered(function() {
     var bulletTime = 0;
     
     var players = {};
+    var gameOver = false;
 
     function create() {
 
@@ -116,8 +117,9 @@ Template.meteoroid.onRendered(function() {
         
         // ** CUSTOM CODE **
         var me = Players.findOne({_id: Session.get("userId")});
-        if (typeof me === "undefined") {
+        if (typeof me === "undefined" && !gameOver) {
           alert("You have been disconnected due to inactivity");
+          gameOver = true;
           return;
         }
         if (me.x === sprite.x && me.y === sprite.y) {
