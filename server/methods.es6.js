@@ -23,5 +23,8 @@ Meteor.methods({
     // var inactivePlayers = Players.find({ createdAt: { $lt: t } }).count();
     // var totalPlayers = Players.find({}).count();
     // Players.remove({ createdAt: { $lt: t } });
+  },
+  ping: function(message) {
+    console.log(message);
   }
 });
