@@ -10,9 +10,9 @@ Template.meteoroid.onRendered(function() {
   game = new Phaser.Game(X_MAX, Y_MAX, Phaser.AUTO, 'phaser-example', { preload: preload, create: create, update: update, render: render });
 });
 
-Template.name.onDestroyed(function(){
-  Players.remove(Session.get('playerId'));
-});
+// Template.name.onDestroyed(function(){
+//   Players.remove(Session.get('playerId'));
+// });
 
 
 function preload() {
@@ -119,12 +119,17 @@ function update() {
 
   // ** CUSTOM CODE **
   if (activePlayer) {
-    Players.update({_id: Session.get("userId")}, {$set: {
-      x: sprite.x,
-      y: sprite.y,
-      rotation: sprite.rotation,
-      createdAt: new Date()
-    }});
+    var me = Players.findOne({ _id: Session.get("userId") });
+    if (me.x === sprite.x && me.y === sprite.y && me.rotation === sprite.rotation) {
+      console.log("no change");
+    } else {
+      Players.update({_id: Session.get("userId")}, {$set: {
+        x: sprite.x,
+        y: sprite.y,
+        rotation: sprite.rotation,
+        createdAt: new Date()
+      }});
+    }
   }
 }
 
