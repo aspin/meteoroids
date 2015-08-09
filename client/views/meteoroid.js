@@ -54,10 +54,10 @@ function create() {
   explosions = game.add.group();
 
   setupCurrentPlayer();
+  setupColor();
   setupGroups();
   setupControls();
   setupObservers();
-  setupColor();
 }
 
 function setupGroups() {
@@ -100,7 +100,7 @@ function setupCurrentPlayer() {
 function setupColor() {
   var colorArray = ['0xCCFFFF', '0xFFFF66', '0xFF6600', '0x66FF33']; //blue, yellow, orange, green
   for(var i = 0; i < colorArray.length; i++) {
-    currentPlayer.tint = colorArray[i];    
+    currentPlayer.tint = colorArray[i];
   }
 }
 
@@ -114,7 +114,8 @@ function setupObservers() {
       y: currentPlayer.y,
       rotation: currentPlayer.rotation,
       status: 'alive',
-      createdAt: new Date()
+      createdAt: new Date(),
+      tint: currentPlayer.tint
     }, function() {
       Meteor.call("ping", "Player has connected: " + currentPlayer._id);
       Players.find().observeChanges({
@@ -167,6 +168,12 @@ function setupObservers() {
           }, 500);
         }
       });
+
+      Bullets.find().observeChanges({
+        added: function(id, fields) {
+          fireBullet(fields.x, fields.y, fields.rotation);
+        }
+      })
     });
   }
 }
@@ -194,20 +201,26 @@ function checkControls() {
   }
 
   if (game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR)) {
-    fireBullet();
+    fireBullet(currentPlayer.body.x, currentPlayer.body.y, currentPlayer.rotation);
   }
 }
 
-function fireBullet () {
+function fireBullet (x, y, rotation) {
   if (game.time.now > bulletTime) {
     bullet = bullets.getFirstExists(false);
 
     if (bullet) {
-      bullet.reset(currentPlayer.body.x + 15, currentPlayer.body.y + 15);
+      bullet.reset(x + 15, y + 15);
       bullet.lifespan = 2000;
-      bullet.rotation = currentPlayer.rotation;
-      game.physics.arcade.velocityFromRotation(currentPlayer.rotation, 400, bullet.body.velocity);
+      bullet.rotation = rotation;
+      game.physics.arcade.velocityFromRotation(rotation, 400, bullet.body.velocity);
       bulletTime = game.time.now + 50;
+
+      Bullets.insert({
+        x: bullet.x,
+        y: bullet.y,
+        rotation: bullet.rotation,
+      });
     }
   }
 }

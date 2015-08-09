@@ -11,3 +11,7 @@ Meteor.publish('players', function() {
 Meteor.publish('asteroids', function(){
   return Asteroids.find();
 });
+
+Meteor.publish('bullets', function() {
+  return Bullets.find();
+})
