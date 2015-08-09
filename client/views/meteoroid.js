@@ -24,6 +24,8 @@ Template.meteoroid.onRendered(function() {
     var bullet;
     var bullets;
     var bulletTime = 0;
+    
+    var players = {};
 
     function create() {
 
@@ -60,6 +62,22 @@ Template.meteoroid.onRendered(function() {
         //  Game input
         cursors = game.input.keyboard.createCursorKeys();
         game.input.keyboard.addKeyCapture([ Phaser.Keyboard.SPACEBAR ]);
+        
+        // ** CUSTOM CODE **
+        var id = parseInt(Math.random() * 1000000).toString();
+        Session.set("userId", id);
+        // console.log("player " + Session.get("userId") + " at location (" + sprite.x + "," + sprite.y + ")");
+        
+        // Initialize database with location
+        // console.log(Session.get("userId"));
+        // console.log(sprite.x + sprite.y);
+        Players.insert({
+          _id: Session.get("userId"),
+          x: sprite.x,
+          y: sprite.y,
+          rotation: sprite.rotation,
+          createdAt: new Date()
+        });
 
     }
 
@@ -95,7 +113,24 @@ Template.meteoroid.onRendered(function() {
         screenWrap(sprite);
 
         bullets.forEachExists(screenWrap, this);
-
+        
+        // ** CUSTOM CODE **
+        var me = Players.findOne({_id: Session.get("userId")});
+        if (typeof me === "undefined") {
+          alert("You have been disconnected due to inactivity");
+          return;
+        }
+        if (me.x === sprite.x && me.y === sprite.y) {
+          // console.log("Not moving, no update");
+        } else {
+          Players.update({_id: Session.get("userId")}, {
+            x: sprite.x,
+            y: sprite.y,
+            rotation: sprite.rotation,
+            createdAt: new Date()
+          });
+        }
+        
     }
 
     function fireBullet () {
@@ -139,6 +174,28 @@ Template.meteoroid.onRendered(function() {
     }
 
     function render() {
-    }
+      
+      for (var key in players) {
+        if (players.hasOwnProperty(key)) {
+          players[key].destroy();
+        }
+      }
+      
+      var everyone = Players.find({_id: { $ne: Session.get("userId") }});
+      if (everyone.count() > 0) {
+        everyone.forEach(function(myDoc) {
+          playerId = myDoc._id;
+          var newSprite = game.add.sprite(myDoc.x, myDoc.y, 'ship');
+          newSprite.anchor.set(0.5);
+          
+          //  and its physics settings
+          game.physics.enable(newSprite, Phaser.Physics.ARCADE);
 
+          newSprite.body.drag.set(100);
+          newSprite.body.maxVelocity.set(200);
+          
+          players[playerId] = newSprite;
+        });
+      }
+    }
 });
