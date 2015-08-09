@@ -1,7 +1,7 @@
 var X_MAX = 1066;
 var Y_MAX = 600;
 
-var playerId, game, sprite, cursors, bullet, bullets, asteroid, asteroids, explosions;
+var playerId, game, playerSpaceship, cursors, bullet, bullets, asteroid, asteroids, explosions;
 var players = {};
 var activePlayer = false;
 var bulletTime = 0;
@@ -54,13 +54,13 @@ function create() {
   bullets.setAll('anchor.x', 0.5);
   bullets.setAll('anchor.y', 0.5);
 
-  sprite = game.add.sprite(50, 50, 'ship');
-  sprite.anchor.set(0.5);
-  game.physics.enable(sprite, Phaser.Physics.ARCADE);
-  sprite.body.drag.set(100);
-  sprite.body.maxVelocity.set(400);
-  sprite.body.collideWorldBounds=true;
-  sprite.body.bounce.setTo(0.2,0.2);
+  playerSpaceship = game.add.sprite(50, 50, 'ship');
+  playerSpaceship.anchor.set(0.5);
+  game.physics.enable(playerSpaceship, Phaser.Physics.ARCADE);
+  playerSpaceship.body.drag.set(100);
+  playerSpaceship.body.maxVelocity.set(400);
+  playerSpaceship.body.collideWorldBounds=true;
+  playerSpaceship.body.bounce.setTo(0.2,0.2);
 
   explosions = game.add.group();
   explosions.createMultiple(30, 'explosion');
@@ -80,56 +80,85 @@ function create() {
   } else {
     activePlayer = true;
     playerId = Players.insert({
-      x: sprite.x,
-      y: sprite.y,
-      rotation: sprite.rotation,
+      x: playerSpaceship.x,
+      y: playerSpaceship.y,
+      rotation: playerSpaceship.rotation,
       createdAt: new Date()
     });
+
+    Players.find().forEach(function(player) {
+      addPlayer(player);
+    })
+
+    Players.find().observeChanges({
+      added: function(id, fields) {
+        fields._id = id;
+        addPlayer(fields);
+      },
+      changed: function(id, fields) {
+        fields.x && (players[id].x = fields.x);
+        fields.y && (players[id].y = fields.y);
+        fields.rotation && (players[id].rotation = fields.rotation);
+      },
+      removed: function(id) {
+        players[id].destroy();
+      }
+    });
+
+    Asteroids.find().observeChanges({
+      added: function(id, fields) {
+        drawAsteroids();
+      }
+    })
   }
 }
 
 function update() {
 
   if (cursors.up.isDown) {
-    game.physics.arcade.accelerationFromRotation(sprite.rotation, 200, sprite.body.acceleration);
+    game.physics.arcade.accelerationFromRotation(playerSpaceship.rotation, 200, playerSpaceship.body.acceleration);
   } else {
-    sprite.body.acceleration.set(0);
+    playerSpaceship.body.acceleration.set(0);
   }
 
   if (cursors.left.isDown) {
-    sprite.body.angularVelocity = -300;
+    playerSpaceship.body.angularVelocity = -300;
   } else if (cursors.right.isDown) {
-    sprite.body.angularVelocity = 300;
+    playerSpaceship.body.angularVelocity = 300;
   } else {
-    sprite.body.angularVelocity = 0;
+    playerSpaceship.body.angularVelocity = 0;
   }
 
   if (game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR)) {
     fireBullet();
   }
-  game.physics.arcade.collide(asteroids, sprite, collisionHandler, null, this);
+  game.physics.arcade.collide(asteroids, playerSpaceship, collisionHandler, null, this);
+  for (var pid in players) {
+    game.physics.arcade.collide(asteroids, players[pid], collisionHandler, null, this);
+  }
 
-  screenWrap(sprite);
+  screenWrap(playerSpaceship);
 
   // ** CUSTOM CODE **
   if (activePlayer) {
     var me = Players.findOne({ _id: playerId });
-    if (me && me.x === sprite.x && me.y === sprite.y && me.rotation === sprite.rotation) {
+    if (me && me.x === playerSpaceship.x && me.y === playerSpaceship.y && me.rotation === playerSpaceship.rotation) {
     } else if (me) {
-      Players.update({_id: Session.get("userId")}, {$set: {
-        x: sprite.x,
-        y: sprite.y,
-        rotation: sprite.rotation,
+      Players.update({_id: playerId}, {$set: {
+        x: playerSpaceship.x,
+        y: playerSpaceship.y,
+        rotation: playerSpaceship.rotation,
         createdAt: new Date()
       }});
     }
   }
 }
 
-function collisionHandler (asteriods, sprite) {
-  sprite.kill();
+function collisionHandler (playerSpaceship, asteroid) {
+  Asteroids.remove({_id: asteroid._id});
+  asteroid.kill();
   var explosion = explosions.getFirstExists(false);
-  explosion.reset(sprite.body.x, sprite.body.y);
+  explosion.reset(playerSpaceship.body.x, playerSpaceship.body.y);
   explosion.play('explosion', 30, false, true);
 }
 
@@ -140,10 +169,10 @@ function fireBullet () {
 
     if (bullet)
     {
-      bullet.reset(sprite.body.x + 16, sprite.body.y + 16);
+      bullet.reset(playerSpaceship.body.x + 16, playerSpaceship.body.y + 16);
       bullet.lifespan = 2000;
-      bullet.rotation = sprite.rotation;
-      game.physics.arcade.velocityFromRotation(sprite.rotation, 400, bullet.body.velocity);
+      bullet.rotation = playerSpaceship.rotation;
+      game.physics.arcade.velocityFromRotation(playerSpaceship.rotation, 400, bullet.body.velocity);
       bulletTime = game.time.now + 50;
     }
   }
@@ -164,20 +193,14 @@ function screenWrap (sprite) {
 }
 
 function render() {
-  for (key in players) {
-    players[key].destroy();
-  }
 
-  var everyone = Players.find({_id: { $ne: playerId }});
-  everyone.forEach(function(myDoc) {
-    playerId = myDoc._id;
-    var newSprite = game.add.sprite(myDoc.x, myDoc.y, 'ship');
-    newSprite.rotation = myDoc.rotation;
-    newSprite.anchor.set(0.5);
+}
 
-    players[playerId] = newSprite;
-  });
-
+function addPlayer(player) {
+  var newSpaceship = game.add.sprite(player.x, player.y, 'ship');
+  newSpaceship.rotation = player.rotation;
+  newSpaceship.anchor.set(0.5);
+  players[player._id] = newSpaceship;
 }
 
 function drawAsteroids() {
@@ -186,5 +209,6 @@ function drawAsteroids() {
     asteroid.body.velocity = new Phaser.Point(ast.xvel, ast.yvel);
     asteroid.body.collideWorldBounds=true;
     asteroid.body.bounce.setTo(1, 1);
+    asteroid._id = ast._id;
   });
 }
