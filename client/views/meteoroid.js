@@ -119,7 +119,6 @@ function update() {
 
   // ** CUSTOM CODE **
   if (activePlayer) {
-<<<<<<< HEAD
     var me = Players.findOne({ _id: Session.get("userId") });
     if (me.x === sprite.x && me.y === sprite.y && me.rotation === sprite.rotation) {
       console.log("no change");
@@ -131,14 +130,6 @@ function update() {
         createdAt: new Date()
       }});
     }
-=======
-    Players.update({_id: playerId}, {$set: {
-      x: sprite.x,
-      y: sprite.y,
-      rotation: sprite.rotation,
-      createdAt: new Date()
-    }});
->>>>>>> added plyaer unloading
   }
 }
 
