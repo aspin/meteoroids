@@ -1,45 +1,53 @@
+startGame	/Users/aspin/meteoroids/server/methods.es6.js	/^  startGame: function(numAsteroids = 5, Xmax = 1066, Ymax = 600) {$/;"	function	line:2
+removeInactive	/Users/aspin/meteoroids/server/methods.es6.js	/^  removeInactive: function() {$/;"	function	line:18
+ping	/Users/aspin/meteoroids/server/methods.es6.js	/^  ping: function(message) {$/;"	function	line:27
 HEIGHT	/Users/aspin/meteoroids/client/views/meteoroid.js	/^var HEIGHT = 1066;$/;"	variable	line:1
 WIDTH	/Users/aspin/meteoroids/client/views/meteoroid.js	/^var WIDTH = 600;$/;"	variable	line:2
-cursors	/Users/aspin/meteoroids/client/views/meteoroid.js	/^var cursors, bullet, bulletTime = 0;$/;"	variable	line:5
-bullets	/Users/aspin/meteoroids/client/views/meteoroid.js	/^var bullets, asteroids, spaceships, explosions;$/;"	variable	line:6
-asteroid	/Users/aspin/meteoroids/client/views/meteoroid.js	/^var asteroid, bullet;$/;"	variable	line:7
-activePlayer	/Users/aspin/meteoroids/client/views/meteoroid.js	/^var activePlayer = false;$/;"	variable	line:8
-onbeforeunload	/Users/aspin/meteoroids/client/views/meteoroid.js	/^  window.onbeforeunload = function() { Players.remove(currentPlayer._id); };$/;"	function	line:12
-preload	/Users/aspin/meteoroids/client/views/meteoroid.js	/^function preload() {$/;"	function	line:29
-preload	/Users/aspin/meteoroids/client/views/meteoroid.js	/^function preload() {$/;"	function	line:29
-create	/Users/aspin/meteoroids/client/views/meteoroid.js	/^function create() {$/;"	function	line:37
-create	/Users/aspin/meteoroids/client/views/meteoroid.js	/^function create() {$/;"	function	line:37
-setupGroups	/Users/aspin/meteoroids/client/views/meteoroid.js	/^function setupGroups() {$/;"	function	line:54
-setupGroups	/Users/aspin/meteoroids/client/views/meteoroid.js	/^function setupGroups() {$/;"	function	line:54
-setupControls	/Users/aspin/meteoroids/client/views/meteoroid.js	/^function setupControls() {$/;"	function	line:78
-setupControls	/Users/aspin/meteoroids/client/views/meteoroid.js	/^function setupControls() {$/;"	function	line:78
-setupCurrentPlayer	/Users/aspin/meteoroids/client/views/meteoroid.js	/^function setupCurrentPlayer() {$/;"	function	line:83
-setupCurrentPlayer	/Users/aspin/meteoroids/client/views/meteoroid.js	/^function setupCurrentPlayer() {$/;"	function	line:83
-setupObservers	/Users/aspin/meteoroids/client/views/meteoroid.js	/^function setupObservers() {$/;"	function	line:93
-added	/Users/aspin/meteoroids/client/views/meteoroid.js	/^        added: function(id, fields) {$/;"	function	line:105
-changed	/Users/aspin/meteoroids/client/views/meteoroid.js	/^        changed: function(id, fields) {$/;"	function	line:111
-removed	/Users/aspin/meteoroids/client/views/meteoroid.js	/^        removed: function(id) {$/;"	function	line:116
-added	/Users/aspin/meteoroids/client/views/meteoroid.js	/^      added: function(id, fields) {$/;"	function	line:124
-removed	/Users/aspin/meteoroids/client/views/meteoroid.js	/^      removed: function(id) {$/;"	function	line:131
-setTimeout	/Users/aspin/meteoroids/client/views/meteoroid.js	/^            setTimeout(function(){$/;"	function	line:134
-setupObservers	/Users/aspin/meteoroids/client/views/meteoroid.js	/^function setupObservers() {$/;"	function	line:93
-update	/Users/aspin/meteoroids/client/views/meteoroid.js	/^function update() {$/;"	function	line:147
-update	/Users/aspin/meteoroids/client/views/meteoroid.js	/^function update() {$/;"	function	line:147
-checkControls	/Users/aspin/meteoroids/client/views/meteoroid.js	/^function checkControls() {$/;"	function	line:154
-checkControls	/Users/aspin/meteoroids/client/views/meteoroid.js	/^function checkControls() {$/;"	function	line:154
-fireBullet	/Users/aspin/meteoroids/client/views/meteoroid.js	/^function fireBullet () {$/;"	function	line:175
-fireBullet	/Users/aspin/meteoroids/client/views/meteoroid.js	/^function fireBullet () {$/;"	function	line:175
-checkCollisions	/Users/aspin/meteoroids/client/views/meteoroid.js	/^function checkCollisions() {$/;"	function	line:189
-checkCollisions	/Users/aspin/meteoroids/client/views/meteoroid.js	/^function checkCollisions() {$/;"	function	line:189
-spaceshipAsteroidHandler	/Users/aspin/meteoroids/client/views/meteoroid.js	/^function spaceshipAsteroidHandler (spaceship, asteroid) {$/;"	function	line:195
-spaceshipAsteroidHandler	/Users/aspin/meteoroids/client/views/meteoroid.js	/^function spaceshipAsteroidHandler (spaceship, asteroid) {$/;"	function	line:195
-bulletAsteroidHandler	/Users/aspin/meteoroids/client/views/meteoroid.js	/^function bulletAsteroidHandler (bullets, asteroid) {$/;"	function	line:201
-bulletAsteroidHandler	/Users/aspin/meteoroids/client/views/meteoroid.js	/^function bulletAsteroidHandler (bullets, asteroid) {$/;"	function	line:201
-playExplosion	/Users/aspin/meteoroids/client/views/meteoroid.js	/^function playExplosion(x, y) {$/;"	function	line:205
-playExplosion	/Users/aspin/meteoroids/client/views/meteoroid.js	/^function playExplosion(x, y) {$/;"	function	line:205
-checkPreventWrap	/Users/aspin/meteoroids/client/views/meteoroid.js	/^function checkPreventWrap () {$/;"	function	line:211
-checkPreventWrap	/Users/aspin/meteoroids/client/views/meteoroid.js	/^function checkPreventWrap () {$/;"	function	line:211
-updateLocation	/Users/aspin/meteoroids/client/views/meteoroid.js	/^function updateLocation() {$/;"	function	line:226
-updateLocation	/Users/aspin/meteoroids/client/views/meteoroid.js	/^function updateLocation() {$/;"	function	line:226
-render	/Users/aspin/meteoroids/client/views/meteoroid.js	/^function render() {$/;"	function	line:241
-render	/Users/aspin/meteoroids/client/views/meteoroid.js	/^function render() {$/;"	function	line:241
+game	/Users/aspin/meteoroids/client/views/meteoroid.js	/^var game, currentPlayer;$/;"	variable	line:4
+cursors	/Users/aspin/meteoroids/client/views/meteoroid.js	/^var cursors, bullet, bulletTime = 0;$/;"	variable	line:6
+bullets	/Users/aspin/meteoroids/client/views/meteoroid.js	/^var bullets, asteroids, spaceships, explosions;$/;"	variable	line:7
+asteroid	/Users/aspin/meteoroids/client/views/meteoroid.js	/^var asteroid, bullet;$/;"	variable	line:8
+activePlayer	/Users/aspin/meteoroids/client/views/meteoroid.js	/^var activePlayer = false;$/;"	variable	line:9
+updatingAsteroids	/Users/aspin/meteoroids/client/views/meteoroid.js	/^var updatingAsteroids = false;$/;"	variable	line:11
+onbeforeunload	/Users/aspin/meteoroids/client/views/meteoroid.js	/^  window.onbeforeunload = function() {$/;"	function	line:15
+preload	/Users/aspin/meteoroids/client/views/meteoroid.js	/^function preload() {$/;"	function	line:36
+preload	/Users/aspin/meteoroids/client/views/meteoroid.js	/^function preload() {$/;"	function	line:36
+create	/Users/aspin/meteoroids/client/views/meteoroid.js	/^function create() {$/;"	function	line:44
+create	/Users/aspin/meteoroids/client/views/meteoroid.js	/^function create() {$/;"	function	line:44
+setupGroups	/Users/aspin/meteoroids/client/views/meteoroid.js	/^function setupGroups() {$/;"	function	line:62
+setupGroups	/Users/aspin/meteoroids/client/views/meteoroid.js	/^function setupGroups() {$/;"	function	line:62
+setupControls	/Users/aspin/meteoroids/client/views/meteoroid.js	/^function setupControls() {$/;"	function	line:83
+setupControls	/Users/aspin/meteoroids/client/views/meteoroid.js	/^function setupControls() {$/;"	function	line:83
+setupCurrentPlayer	/Users/aspin/meteoroids/client/views/meteoroid.js	/^function setupCurrentPlayer() {$/;"	function	line:88
+setupCurrentPlayer	/Users/aspin/meteoroids/client/views/meteoroid.js	/^function setupCurrentPlayer() {$/;"	function	line:88
+setupObservers	/Users/aspin/meteoroids/client/views/meteoroid.js	/^function setupObservers() {$/;"	function	line:98
+added	/Users/aspin/meteoroids/client/views/meteoroid.js	/^        added: function(id, fields) {$/;"	function	line:112
+changed	/Users/aspin/meteoroids/client/views/meteoroid.js	/^        changed: function(id, fields) {$/;"	function	line:121
+removed	/Users/aspin/meteoroids/client/views/meteoroid.js	/^        removed: function(id) {$/;"	function	line:133
+added	/Users/aspin/meteoroids/client/views/meteoroid.js	/^        added: function(id, fields) {$/;"	function	line:139
+changed	/Users/aspin/meteoroids/client/views/meteoroid.js	/^        changed: function(id, fields) {$/;"	function	line:147
+removed	/Users/aspin/meteoroids/client/views/meteoroid.js	/^        removed: function(id) {$/;"	function	line:152
+setTimeout	/Users/aspin/meteoroids/client/views/meteoroid.js	/^          setTimeout(function(){$/;"	function	line:153
+setupObservers	/Users/aspin/meteoroids/client/views/meteoroid.js	/^function setupObservers() {$/;"	function	line:98
+update	/Users/aspin/meteoroids/client/views/meteoroid.js	/^function update() {$/;"	function	line:165
+update	/Users/aspin/meteoroids/client/views/meteoroid.js	/^function update() {$/;"	function	line:165
+checkControls	/Users/aspin/meteoroids/client/views/meteoroid.js	/^function checkControls() {$/;"	function	line:172
+checkControls	/Users/aspin/meteoroids/client/views/meteoroid.js	/^function checkControls() {$/;"	function	line:172
+fireBullet	/Users/aspin/meteoroids/client/views/meteoroid.js	/^function fireBullet () {$/;"	function	line:192
+fireBullet	/Users/aspin/meteoroids/client/views/meteoroid.js	/^function fireBullet () {$/;"	function	line:192
+checkCollisions	/Users/aspin/meteoroids/client/views/meteoroid.js	/^function checkCollisions() {$/;"	function	line:206
+checkCollisions	/Users/aspin/meteoroids/client/views/meteoroid.js	/^function checkCollisions() {$/;"	function	line:206
+spaceshipAsteroidHandler	/Users/aspin/meteoroids/client/views/meteoroid.js	/^function spaceshipAsteroidHandler (spaceship, asteroid) {$/;"	function	line:212
+spaceshipAsteroidHandler	/Users/aspin/meteoroids/client/views/meteoroid.js	/^function spaceshipAsteroidHandler (spaceship, asteroid) {$/;"	function	line:212
+bulletAsteroidHandler	/Users/aspin/meteoroids/client/views/meteoroid.js	/^function bulletAsteroidHandler (asteroid, bullets) {$/;"	function	line:221
+bulletAsteroidHandler	/Users/aspin/meteoroids/client/views/meteoroid.js	/^function bulletAsteroidHandler (asteroid, bullets) {$/;"	function	line:221
+playExplosion	/Users/aspin/meteoroids/client/views/meteoroid.js	/^function playExplosion(x, y) {$/;"	function	line:225
+playExplosion	/Users/aspin/meteoroids/client/views/meteoroid.js	/^function playExplosion(x, y) {$/;"	function	line:225
+handleAsteroidBounce	/Users/aspin/meteoroids/client/views/meteoroid.js	/^function handleAsteroidBounce(asteroid) {$/;"	function	line:231
+handleAsteroidBounce	/Users/aspin/meteoroids/client/views/meteoroid.js	/^function handleAsteroidBounce(asteroid) {$/;"	function	line:231
+checkPreventWrap	/Users/aspin/meteoroids/client/views/meteoroid.js	/^function checkPreventWrap () {$/;"	function	line:238
+checkPreventWrap	/Users/aspin/meteoroids/client/views/meteoroid.js	/^function checkPreventWrap () {$/;"	function	line:238
+updateData	/Users/aspin/meteoroids/client/views/meteoroid.js	/^function updateData() {$/;"	function	line:253
+updateData	/Users/aspin/meteoroids/client/views/meteoroid.js	/^function updateData() {$/;"	function	line:253
+render	/Users/aspin/meteoroids/client/views/meteoroid.js	/^function render() {$/;"	function	line:281
+render	/Users/aspin/meteoroids/client/views/meteoroid.js	/^function render() {$/;"	function	line:281

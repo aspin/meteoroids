@@ -1,15 +1,21 @@
 var HEIGHT = 1066;
 var WIDTH = 600;
 
-var game, currentPlayer, players = {};
+var game, currentPlayer;
+var playerList = {}, asteroidsList = {};
 var cursors, bullet, bulletTime = 0;
 var bullets, asteroids, spaceships, explosions;
 var asteroid, bullet;
 var activePlayer = false;
 
+var updatingAsteroids = false;
+
 Template.meteoroid.onRendered(function() {
   game = new Phaser.Game(HEIGHT, WIDTH, Phaser.AUTO, 'meteoroid', { preload: preload, create: create, update: update, render: render });
-  window.onbeforeunload = function() { Players.remove(currentPlayer._id); };
+  window.onbeforeunload = function() {
+    Players.remove(currentPlayer._id);
+    Meteor.call("ping", "Player has disconnected: " + currentPlayer._id);
+  };
 });
 
 Template.meteoroid.events({
@@ -17,6 +23,7 @@ Template.meteoroid.events({
     Meteor.call("startGame", function(error, result){
       if(error){
         console.log("error", error);
+      } else {
       }
     });
   }
@@ -35,6 +42,7 @@ function preload() {
 }
 
 function create() {
+  game.stage.disableVisibilityChange = true;
   game.renderer.clearBeforeRender = false;
   game.renderer.roundPixels = true;
   game.physics.startSystem(Phaser.Physics.ARCADE);
@@ -60,9 +68,6 @@ function setupGroups() {
   bullets.createMultiple(20, 'bullet');
   bullets.setAll('anchor.x', 0.5);
   bullets.setAll('anchor.y', 0.5);
-
-  spaceships.setAll('anchor.x', 0.5);
-  spaceships.setAll('anchor.y', 0.5);
 
   explosions.createMultiple(30, 'explosion');
   explosions.forEach(function(explosion) {
@@ -99,48 +104,61 @@ function setupObservers() {
       x: currentPlayer.x,
       y: currentPlayer.y,
       rotation: currentPlayer.rotation,
+      status: 'alive',
       createdAt: new Date()
     }, function() {
+      Meteor.call("ping", "Player has connected: " + currentPlayer._id);
       Players.find().observeChanges({
         added: function(id, fields) {
-          var player = this.spaceships.create(fields.x, fields.y, 'ship');
-          player._id = id;
-          player.rotation = fields.rotation;
-          players[player._id] = player;
+          if (id !== currentPlayer._id) {
+            var player = spaceships.create(fields.x, fields.y, 'ship');
+            player._id = id;
+            player.rotation = fields.rotation;
+            player.anchor.setTo(0.5);
+            playerList[id] = player;
+          }
         },
         changed: function(id, fields) {
-          fields.x && (players[id].x = fields.x);
-          fields.y && (players[id].y = fields.y);
-          fields.rotation && (players[id].rotation = fields.rotation);
+          if (id !== currentPlayer._id) {
+            var player = playerList[id];
+            fields.x && (player.x = fields.x);
+            fields.y && (player.y = fields.y);
+            fields.rotation && (player.rotation = fields.rotation);
+            if (fields.status == 'dead') {
+              playExplosion(player.x, player.y);
+              player.kill();
+            }
+          }
         },
         removed: function(id) {
-          players[id].destroy();
+          playerList[id].destroy();
+        }
+      });
+
+      Asteroids.find().observeChanges({
+        added: function(id, fields) {
+          asteroid = asteroids.create(fields.x, fields.y, 'asteroid');
+          asteroid._id = id;
+          asteroid.body.velocity = new Phaser.Point(fields.xvel, fields.yvel);
+          asteroid.body.collideWorldBounds=true;
+          asteroid.body.bounce.setTo(1, 1);
+          asteroidsList[id] = asteroid;
+        },
+        changed: function(id, fields) {
+          fields.x && (asteroidsList[id].x = fields.x);
+          fields.y && (asteroidsList[id].y = fields.y);
+          fields.xvel && (asteroidsList[id].body.velocity = new Phaser.Point(fields.xvel, fields.yvel));
+        },
+        removed: function(id) {
+          setTimeout(function(){
+            if (asteroidsList[id]) {
+              playExplosion(asteroidsList[id].body.x, asteroidsList[id].body.y);
+              asteroidsList[id].kill();
+            }
+          }, 500);
         }
       });
     });
-
-
-    Asteroids.find().observeChanges({
-      added: function(id, fields) {
-        asteroid = asteroids.create(fields.x, fields.y, 'asteroid');
-        asteroid._id = id;
-        asteroid.body.velocity = new Phaser.Point(fields.xvel, fields.yvel);
-        asteroid.body.collideWorldBounds=true;
-        asteroid.body.bounce.setTo(1, 1);
-      },
-      removed: function(id) {
-        asteroids.forEach(function(asteroid) {
-          if (asteroid._id == id) {
-            setTimeout(function(){
-              if (asteroid) {
-                playExplosion(asteroid.body.x, asteroid.body.y);
-                asteroid.kill();
-              }
-            }, 500);
-          }
-        })
-      }
-    })
   }
 }
 
@@ -148,11 +166,10 @@ function update() {
   checkControls();
   checkCollisions();
   checkPreventWrap();
-  updateLocation();
+  updateData();
 }
 
 function checkControls() {
-  console.log(cursors);
   if (cursors.up.isDown) {
     game.physics.arcade.accelerationFromRotation(currentPlayer.rotation, 200, currentPlayer.body.acceleration);
   } else {
@@ -188,18 +205,21 @@ function fireBullet () {
 
 function checkCollisions() {
   game.physics.arcade.collide(asteroids, currentPlayer, spaceshipAsteroidHandler);
-  game.physics.arcade.collide(asteroids, spaceships, spaceshipAsteroidHandler);
+  // game.physics.arcade.collide(asteroids, spaceships, spaceshipAsteroidHandler);
   game.physics.arcade.collide(asteroids, bullets, bulletAsteroidHandler);
 }
 
 function spaceshipAsteroidHandler (spaceship, asteroid) {
-  Asteroids.remove({_id: asteroid._id});
-  asteroid.kill();
   playExplosion(spaceship.body.x, spaceship.body.y);
+  handleAsteroidBounce(asteroid);
+  spaceship.kill();
+  Players.update(currentPlayer._id, {$set: {
+    status: 'dead'
+  }})
 }
 
-function bulletAsteroidHandler (bullets, asteroid) {
-  console.log("open fire!");
+function bulletAsteroidHandler (asteroid, bullets) {
+  handleAsteroidBounce(asteroid);
 }
 
 function playExplosion(x, y) {
@@ -208,8 +228,15 @@ function playExplosion(x, y) {
   explosion.play('explosion', 30, false, true);
 }
 
+function handleAsteroidBounce(asteroid) {
+  // updatingAsteroids = true;
+  // setTimeout(function() {
+  //   updatingAsteroids = false;
+  // }, 500);
+}
+
 function checkPreventWrap () {
-  console.log(currentPlayer);
+  // console.log(currentPlayer);
   if (currentPlayer.x < 0) {
     currentPlayer.x = game.width;
   } else if (currentPlayer.x > game.width) {
@@ -223,7 +250,7 @@ function checkPreventWrap () {
   }
 }
 
-function updateLocation() {
+function updateData() {
   if (activePlayer) {
     var me = Players.findOne({ _id: currentPlayer._id });
     if (me && me.x === currentPlayer.x && me.y === currentPlayer.y && me.rotation === currentPlayer.rotation) {
@@ -235,6 +262,19 @@ function updateLocation() {
         createdAt: new Date()
       }});
     }
+
+    // if (updatingAsteroids) {
+    //   for (var i in asteroidsList) {
+    //     var asteroid = asteroidsList[i];
+    //     console.log(asteroid.body.velocity);
+    //     Asteroids.update(asteroid._id, {$set: {
+    //       x: asteroid.x,
+    //       y: asteroid.y,
+    //       xvel: asteroid.body.velocity.x,
+    //       yvel: asteroid.body.velocity.y
+    //     }});
+    //   }
+    // }
   }
 }
 
