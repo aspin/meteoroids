@@ -1,14 +1,15 @@
-var X_MAX = 1066;
-var Y_MAX = 600;
+var HEIGHT = 1066;
+var WIDTH = 600;
 
-var playerId, game, playerSpaceship, cursors, bullet, bullets, asteroid, asteroids, explosions;
-var players = {};
+var game, currentPlayer, players = {};
+var cursors, bullet, bulletTime = 0;
+var bullets, asteroids, spaceships, explosions;
+var asteroid, bullet;
 var activePlayer = false;
-var bulletTime = 0;
 
 Template.meteoroid.onRendered(function() {
-  game = new Phaser.Game(X_MAX, Y_MAX, Phaser.AUTO, 'meteoroid', { preload: preload, create: create, update: update, render: render });
-  window.onbeforeunload = function() { Players.remove(playerId); };
+  game = new Phaser.Game(HEIGHT, WIDTH, Phaser.AUTO, 'meteoroid', { preload: preload, create: create, update: update, render: render });
+  window.onbeforeunload = function() { Players.remove(currentPlayer._id); };
 });
 
 Template.meteoroid.events({
@@ -22,7 +23,7 @@ Template.meteoroid.events({
 });
 
 Template.meteoroid.onDestroyed(function(){
-  Players.remove(playerId);
+  Players.remove(currentPlayer._id);
 });
 
 function preload() {
@@ -38,54 +39,74 @@ function create() {
   game.renderer.roundPixels = true;
   game.physics.startSystem(Phaser.Physics.ARCADE);
   game.add.tileSprite(0, 0, game.width, game.height, 'space');
-  
+
   asteroids = game.add.group();
+  bullets = game.add.group();
+  spaceships = game.add.group();
+  explosions = game.add.group();
+
+  setupCurrentPlayer();
+  setupGroups();
+  setupControls();
+  setupObservers();
+}
+
+function setupGroups() {
   asteroids.enableBody = true;
   asteroids.physicsBodyType = Phaser.Physics.ARCADE;
-  game.physics.arcade.enable(asteroids, Phaser.Physics.ARCADE);
 
-  bullets = game.add.group();
   bullets.enableBody = true;
   bullets.physicsBodyType = Phaser.Physics.ARCADE;
   bullets.createMultiple(20, 'bullet');
   bullets.setAll('anchor.x', 0.5);
   bullets.setAll('anchor.y', 0.5);
 
-  playerSpaceship = game.add.sprite(50, 50, 'ship');
-  playerSpaceship.anchor.setTo(0.5);
-  game.physics.enable(playerSpaceship, Phaser.Physics.ARCADE);
-  playerSpaceship.body.drag.set(100);
-  playerSpaceship.body.maxVelocity.set(400);
-  playerSpaceship.body.collideWorldBounds=true;
-  playerSpaceship.body.bounce.setTo(0.2,0.2);
+  spaceships.setAll('anchor.x', 0.5);
+  spaceships.setAll('anchor.y', 0.5);
 
-  explosions = game.add.group();
   explosions.createMultiple(30, 'explosion');
   explosions.forEach(function(explosion) {
     explosion.anchor.x = 0.5;
     explosion.anchor.y = 0.5;
     explosion.animations.add('explosion');
-  }, this);
+  });
 
-  //  Game input
+  game.physics.arcade.enable(asteroids, Phaser.Physics.ARCADE);
+  game.physics.arcade.enable(spaceships, Phaser.Physics.ARCADE);
+}
+
+function setupControls() {
   cursors = game.input.keyboard.createCursorKeys();
   game.input.keyboard.addKeyCapture([ Phaser.Keyboard.SPACEBAR ]);
+}
 
+function setupCurrentPlayer() {
+  currentPlayer = game.add.sprite(50, 50, 'ship');
+  currentPlayer.anchor.setTo(0.5);
+  game.physics.enable(currentPlayer, Phaser.Physics.ARCADE);
+  currentPlayer.body.drag.set(100);
+  currentPlayer.body.maxVelocity.set(400);
+  currentPlayer.body.collideWorldBounds=true;
+  currentPlayer.body.bounce.setTo(0.2,0.2);
+}
+
+function setupObservers() {
   if (Players.find().count() >= 4) {
     alert("You may join, but others cannot see you");
   } else {
     activePlayer = true;
-
-    playerId = Players.insert({
-      x: playerSpaceship.x,
-      y: playerSpaceship.y,
-      rotation: playerSpaceship.rotation,
+    currentPlayer._id = Players.insert({
+      x: currentPlayer.x,
+      y: currentPlayer.y,
+      rotation: currentPlayer.rotation,
       createdAt: new Date()
     }, function() {
       Players.find().observeChanges({
         added: function(id, fields) {
-          fields._id = id;
-          addPlayer(fields);
+          var player = this.spaceships.create(fields.x, fields.y, 'ship');
+          player._id = id;
+          player.rotation = fields.rotation;
+          players[player._id] = player;
         },
         changed: function(id, fields) {
           fields.x && (players[id].x = fields.x);
@@ -101,13 +122,18 @@ function create() {
 
     Asteroids.find().observeChanges({
       added: function(id, fields) {
-        drawAsteroid(id, fields.x, fields.y, fields.xvel, fields.yvel);
+        asteroid = asteroids.create(fields.x, fields.y, 'asteroid');
+        asteroid._id = id;
+        asteroid.body.velocity = new Phaser.Point(fields.xvel, fields.yvel);
+        asteroid.body.collideWorldBounds=true;
+        asteroid.body.bounce.setTo(1, 1);
       },
       removed: function(id) {
         asteroids.forEach(function(asteroid) {
           if (asteroid._id == id) {
             setTimeout(function(){
               if (asteroid) {
+                playExplosion(asteroid.body.x, asteroid.body.y);
                 asteroid.kill();
               }
             }, 500);
@@ -119,107 +145,99 @@ function create() {
 }
 
 function update() {
+  checkControls();
+  checkCollisions();
+  checkPreventWrap();
+  updateLocation();
+}
+
+function checkControls() {
+  console.log(cursors);
   if (cursors.up.isDown) {
-    game.physics.arcade.accelerationFromRotation(playerSpaceship.rotation, 200, playerSpaceship.body.acceleration);
+    game.physics.arcade.accelerationFromRotation(currentPlayer.rotation, 200, currentPlayer.body.acceleration);
   } else {
-    playerSpaceship.body.acceleration.set(0);
+    currentPlayer.body.acceleration.set(0);
   }
 
   if (cursors.left.isDown) {
-    playerSpaceship.body.angularVelocity = -300;
+    currentPlayer.body.angularVelocity = -300;
   } else if (cursors.right.isDown) {
-    playerSpaceship.body.angularVelocity = 300;
+    currentPlayer.body.angularVelocity = 300;
   } else {
-    playerSpaceship.body.angularVelocity = 0;
+    currentPlayer.body.angularVelocity = 0;
   }
 
   if (game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR)) {
     fireBullet();
   }
-  game.physics.arcade.collide(asteroids, playerSpaceship, collisionHandler, null, this);
-  for (var pid in players) {
-    game.physics.arcade.collide(asteroids, players[pid], collisionHandler, null, this);
-  }
-  
-
-  screenWrap(playerSpaceship);
-
-  // ** CUSTOM CODE **
-  if (activePlayer) {
-    var me = Players.findOne({ _id: playerId });
-    if (me && me.x === playerSpaceship.x && me.y === playerSpaceship.y && me.rotation === playerSpaceship.rotation) {
-    } else if (me) {
-      Players.update({_id: playerId}, {$set: {
-        x: playerSpaceship.x,
-        y: playerSpaceship.y,
-        rotation: playerSpaceship.rotation,
-        createdAt: new Date()
-      }});
-    }
-  }
-}
-
-function collisionHandler (spaceship, asteroid) {
-  console.log('collision!');
-  console.log(spaceship);
-  Asteroids.remove({_id: asteroid._id});
-  asteroid.kill();
-  var explosion = explosions.getFirstExists(false);
-  explosion.reset(spaceship.body.x, spaceship.body.y);
-  explosion.play('explosion', 30, false, true);
 }
 
 function fireBullet () {
-  if (game.time.now > bulletTime)
-  {
+  if (game.time.now > bulletTime) {
     bullet = bullets.getFirstExists(false);
 
-    if (bullet)
-    {
-      bullet.reset(playerSpaceship.body.x + 15, playerSpaceship.body.y + 15);
+    if (bullet) {
+      bullet.reset(currentPlayer.body.x + 15, currentPlayer.body.y + 15);
       bullet.lifespan = 2000;
-      bullet.rotation = playerSpaceship.rotation;
-      game.physics.arcade.velocityFromRotation(playerSpaceship.rotation, 400, bullet.body.velocity);
+      bullet.rotation = currentPlayer.rotation;
+      game.physics.arcade.velocityFromRotation(currentPlayer.rotation, 400, bullet.body.velocity);
       bulletTime = game.time.now + 50;
     }
-    game.physics.arcade.collide(asteroids, bullets, bulletAsteroidHandler, null, this);
   }
+}
+
+function checkCollisions() {
+  game.physics.arcade.collide(asteroids, currentPlayer, spaceshipAsteroidHandler);
+  game.physics.arcade.collide(asteroids, spaceships, spaceshipAsteroidHandler);
+  game.physics.arcade.collide(asteroids, bullets, bulletAsteroidHandler);
+}
+
+function spaceshipAsteroidHandler (spaceship, asteroid) {
+  Asteroids.remove({_id: asteroid._id});
+  asteroid.kill();
+  playExplosion(spaceship.body.x, spaceship.body.y);
 }
 
 function bulletAsteroidHandler (bullets, asteroid) {
   console.log("open fire!");
 }
 
-function screenWrap (sprite) {
-  if (sprite.x < 0) {
-    sprite.x = game.width;
-  } else if (sprite.x > game.width) {
-    sprite.x = 0;
+function playExplosion(x, y) {
+  var explosion = explosions.getFirstExists(false);
+  explosion.reset(x, y);
+  explosion.play('explosion', 30, false, true);
+}
+
+function checkPreventWrap () {
+  console.log(currentPlayer);
+  if (currentPlayer.x < 0) {
+    currentPlayer.x = game.width;
+  } else if (currentPlayer.x > game.width) {
+    currentPlayer.x = 0;
   }
 
-  if (sprite.y < 0) {
-    sprite.y = game.height;
-  } else if (sprite.y > game.height) {
-    sprite.y = 0;
+  if (currentPlayer.y < 0) {
+    currentPlayer.y = game.height;
+  } else if (currentPlayer.y > game.height) {
+    currentPlayer.y = 0;
+  }
+}
+
+function updateLocation() {
+  if (activePlayer) {
+    var me = Players.findOne({ _id: currentPlayer._id });
+    if (me && me.x === currentPlayer.x && me.y === currentPlayer.y && me.rotation === currentPlayer.rotation) {
+    } else if (me) {
+      Players.update({_id: currentPlayer._id}, {$set: {
+        x: currentPlayer.x,
+        y: currentPlayer.y,
+        rotation: currentPlayer.rotation,
+        createdAt: new Date()
+      }});
+    }
   }
 }
 
 function render() {
 
-}
-
-function addPlayer(player) {
-  var newSpaceship = game.add.sprite(player.x, player.y, 'ship');
-  newSpaceship.rotation = player.rotation;
-  newSpaceship.anchor.set(0.5);
-  game.physics.enable(newSpaceship, Phaser.Physics.ARCADE);
-  players[player._id] = newSpaceship;
-}
-
-function drawAsteroid(id, x, y, xvel, yvel) {
-  asteroid = asteroids.create(x, y, 'asteroid');
-  asteroid.body.velocity = new Phaser.Point(xvel, yvel);
-  asteroid.body.collideWorldBounds=true;
-  asteroid.body.bounce.setTo(1, 1);
-  asteroid._id = id;
 }
