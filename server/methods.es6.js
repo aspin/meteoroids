@@ -1,14 +1,14 @@
 Meteor.methods({
-  createAsteroids: function(num, Xmax, Ymax) {
+  startGame: function(numAsteroids = 5, Xmax = 1066, Ymax = 600) {
     Asteroids.remove({});
-    for(var i = 0; i < num; i++) {
+    for(var i = 0; i < numAsteroids; i++) {
       var randomX = Math.floor(Math.random() * Xmax);
       var randomY = Math.floor(Math.random() * Ymax);
       var randomXvel = Math.floor(Math.random() * 500) - 250;
       var randomYvel = Math.floor(Math.random() * 500) - 250;
-      
+
       Asteroids.insert({
-        x: randomX, 
+        x: randomX,
         y: randomY,
         xvel: randomXvel,
         yvel: randomYvel

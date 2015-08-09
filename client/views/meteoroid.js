@@ -7,14 +7,25 @@ var activePlayer = false;
 var bulletTime = 0;
 
 Template.meteoroid.onRendered(function() {
-  game = new Phaser.Game(X_MAX, Y_MAX, Phaser.AUTO, 'phaser-example', { preload: preload, create: create, update: update, render: render });
+  game = new Phaser.Game(X_MAX, Y_MAX, Phaser.AUTO, 'meteoroid', { preload: preload, create: create, update: update, render: render });
   window.onbeforeunload = function() { Players.remove(playerId); };
+});
+
+Template.meteoroid.events({
+  "click #restart": function(event, template){
+    Meteor.call("startGame", function(error, result){
+      if(error){
+        console.log("error", error);
+      } else {
+        drawAsteroids();
+      }
+    });
+  }
 });
 
 Template.meteoroid.onDestroyed(function(){
   Players.remove(playerId);
 });
-
 
 function preload() {
   game.load.image('space', 'assets/skies/deep-space.jpg');
@@ -33,6 +44,7 @@ function create() {
   asteroids = game.add.group();
   asteroids.enableBody = true;
   asteroids.physicsBodyType = Phaser.Physics.ARCADE;
+<<<<<<< HEAD
 
   Asteroids.find().forEach(function(ast) {
     asteroid = asteroids.create(ast.x, ast.y, 'asteroid');
@@ -42,25 +54,20 @@ function create() {
     asteroid.body.bounce.setTo(1, 1);
   });
 
+=======
+>>>>>>> added game starting
   game.physics.arcade.enable(asteroids, Phaser.Physics.ARCADE);
 
-  //  Our ships bullets
   bullets = game.add.group();
   bullets.enableBody = true;
   bullets.physicsBodyType = Phaser.Physics.ARCADE;
-
-  //  Shoot 3 bullets at once
   bullets.createMultiple(3, 'bullet');
   bullets.setAll('anchor.x', 0.5);
   bullets.setAll('anchor.y', 0.5);
 
-  //  Our player ship
   sprite = game.add.sprite(50, 50, 'ship');
   sprite.anchor.set(0.5);
-
-  //  and its physics settings
   game.physics.enable(sprite, Phaser.Physics.ARCADE);
-
   sprite.body.drag.set(100);
   sprite.body.maxVelocity.set(400);
   sprite.body.collideWorldBounds=true;
@@ -79,9 +86,6 @@ function create() {
   cursors = game.input.keyboard.createCursorKeys();
   game.input.keyboard.addKeyCapture([ Phaser.Keyboard.SPACEBAR ]);
 
-  // Initialize database with location
-  // console.log(playerId);
-  // console.log(sprite.x + sprite.y);
   if (Players.find().count() >= 4) {
     alert("You may join, but others cannot see you");
   } else {
@@ -118,12 +122,11 @@ function update() {
 
   screenWrap(sprite);
 
-
   // ** CUSTOM CODE **
   if (activePlayer) {
     var me = Players.findOne({ _id: playerId });
-    if (me.x === sprite.x && me.y === sprite.y && me.rotation === sprite.rotation) {
-    } else {
+    if (me && me.x === sprite.x && me.y === sprite.y && me.rotation === sprite.rotation) {
+    } else if (me) {
       Players.update({_id: Session.get("userId")}, {$set: {
         x: sprite.x,
         y: sprite.y,
@@ -158,7 +161,6 @@ function fireBullet () {
 }
 
 function screenWrap (sprite) {
-
   if (sprite.x < 0) {
     sprite.x = game.width;
   } else if (sprite.x > game.width) {
@@ -173,7 +175,6 @@ function screenWrap (sprite) {
 }
 
 function render() {
-
   for (key in players) {
     players[key].destroy();
   }
@@ -188,4 +189,12 @@ function render() {
     players[playerId] = newSprite;
   });
 
+}
+
+function drawAsteroids() {
+  Asteroids.find().forEach(function(asteroid) {
+    asteroid = asteroids.create(asteroid.x, asteroid.y, 'asteroid');
+    asteroid.body.collideWorldBounds=true;
+    asteroid.body.bounce.setTo(0.1, 0.1);
+  });
 }

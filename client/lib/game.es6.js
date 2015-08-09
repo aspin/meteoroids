@@ -1,3 +1,5 @@
+console.log(Phaser);
+
 class Game {
   constructor() {
     this.players = [];

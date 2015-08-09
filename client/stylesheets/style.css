@@ -1,7 +1,9 @@
-/*
+#meteoroid {
+  width: 1066px;
+  height: 600px;
+  margin: 30px auto;
+}
 
-    ADD IN CSS DECLARATIONS HERE.
-
-    Rename and reorganize these files as you see fit.
-
-*/
+.button-container {
+  margin: 10px auto;
+}
