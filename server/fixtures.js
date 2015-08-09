@@ -12,9 +12,5 @@ Meteor.startup(function () {
     Meteor.call('removeInactive');
   });
   var t = setInterval(boundFunction, 500);
-  
-});
 
-Meteor.publish('players', function() {
-  return Players.find();
 });

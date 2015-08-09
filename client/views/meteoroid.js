@@ -1,14 +1,6 @@
-/*
-
-    ADD IN JAVASCRIPT CODE HERE.
-
-    Rename and reorder these pages as necessary.
-
-*/
-
 Template.meteoroid.onRendered(function() {
-    // add javascript to be executed when the template first_view is rendered
-    var game = new Phaser.Game(1200, 1000, Phaser.AUTO, 'phaser-example', { preload: preload, create: create, update: update, render: render });
+
+    var game = new Phaser.Game(1066, 600, Phaser.AUTO, 'phaser-example', { preload: preload, create: create, update: update, render: render });
 
     function preload() {
 
@@ -28,10 +20,10 @@ Template.meteoroid.onRendered(function() {
     var bulletTime = 0;
     var asteroid;
     var asteroids;
-    var randomXPosition; 
+    var randomXPosition;
     var randomYPosition;
     var explosions;
-    
+
     var players = {};
     var activePlayer = false;
 
@@ -47,7 +39,7 @@ Template.meteoroid.onRendered(function() {
         //  A spacey background
         game.add.tileSprite(0, 0, game.width, game.height, 'space');
 
-        // Create asteroid in random positions 
+        // Create asteroid in random positions
         asteroids = game.add.group();
         asteroids.enableBody = true;
         asteroids.physicsBodyType = Phaser.Physics.ARCADE;
@@ -60,7 +52,7 @@ Template.meteoroid.onRendered(function() {
             asteroid.body.bounce.setTo(0.1, 0.1);
 
         }
-       
+
         game.physics.arcade.enable(asteroids, Phaser.Physics.ARCADE);
 
         //  Our ships bullets
@@ -91,12 +83,12 @@ Template.meteoroid.onRendered(function() {
         //  Game input
         cursors = game.input.keyboard.createCursorKeys();
         game.input.keyboard.addKeyCapture([ Phaser.Keyboard.SPACEBAR ]);
-        
+
         // ** CUSTOM CODE **
-        var = parseInt(Math.random() * 1000000).toString();
+        var id = parseInt(Math.random() * 1000000).toString();
         Session.set("userId", id);
         // console.log("player " + Session.get("userId") + " at location (" + sprite.x + "," + sprite.y + ")");
-        
+
         // Initialize database with location
         // console.log(Session.get("userId"));
         // console.log(sprite.x + sprite.y);
@@ -147,7 +139,7 @@ Template.meteoroid.onRendered(function() {
         screenWrap(sprite);
 
         bullets.forEachExists(screenWrap, this);
-        
+
         // ** CUSTOM CODE **
         if (activePlayer) {
           Players.update({_id: Session.get("userId")}, {
@@ -211,20 +203,20 @@ Template.meteoroid.onRendered(function() {
     }
 
     function render() {
-      
+
       for (key in players) {
         players[key].destroy();
       }
-      
+
       var everyone = Players.find({_id: { $ne: Session.get("userId") }});
       everyone.forEach(function(myDoc) {
         playerId = myDoc._id;
         var newSprite = game.add.sprite(myDoc.x, myDoc.y, 'ship');
         newSprite.rotation = myDoc.rotation;
         newSprite.anchor.set(0.5);
-        
+
         players[playerId] = newSprite;
       });
-      
+
     }
 });
