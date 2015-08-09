@@ -5,8 +5,8 @@ currentPlayer = null;
 var game;
 var playerList = {}, asteroidsList = {};
 var cursors, bullet, bulletTime = 0;
-var bullets, flames, eballs, eballexplodes, asteroids, spaceships, explosions, space;
-var asteroid, bullet;
+var bullets, flames, bossFlames, eballs, eballexplodes, asteroids, spaceships, explosions, space;
+var asteroid, bullet, bossPlayer;
 var activePlayer = false;
 var isUpdating = false;
 
@@ -32,21 +32,50 @@ Template.meteoroid.onRendered(function() {
 
 Template.meteoroid.events({
   "click #levelOne": function(event, template){
+    // bossPlayer && bossPlayer.kill();
     Meteor.call("levelOne");
   },
   "click #levelTwo": function(event, template){
+    // bossPlayer && bossPlayer.kill();
     Meteor.call("levelTwo");
   },
   "click #levelThree": function(event, template){
+    // bossPlayer && bossPlayer.kill();
     Meteor.call("levelThree");
   },
   "click #levelFour": function(event, template){
+    // bossPlayer && bossPlayer.kill();
     Meteor.call("levelFour");
-    bossPlayer = game.add.sprite(300, 500, 'boss');
+    bossPlayer = game.add.sprite(500, 300, 'boss');
     bossPlayer.anchor.setTo(0.5);
     bossPlayer.enableBody= true;
-    bossPlayer.collideWorldBounds= true;
+    bossPlayer.physicsBodyType = Phaser.Physics.ARCADE;
     game.physics.arcade.enable(bossPlayer, Phaser.Physics.ARCADE);
+    bossPlayer.body.immovable = true;
+    bossPlayer.collideWorldBounds=true;
+    bossPlayer.body.bounce.setTo(0.2,0.2);
+
+
+    setInterval(function() {
+      if (bossPlayer.alive) {
+        for(var i = 0; i < 25; i++) {
+          bullet = flames.getFirstExists(false);
+
+          if (bullet) {
+            bullet.reset(bossPlayer.body.x, bossPlayer.body.y);
+            bullet.lifespan = 2000;
+            bullet.play('flame', 30, true, true);
+
+            var randomXvel = Math.floor(Math.random() * 500) - 250;
+            var randomYvel = Math.floor(Math.random() * 500) - 250;
+
+            bullet.body.velocity = new Phaser.Point(randomXvel, randomYvel);
+            bullet.rotation = Math.atan(randomYvel, randomXvel);
+            console.log(Math.atan(randomYvel, randomXvel));
+          }
+        }
+      }
+    }, 2500);
 
   }
 });
@@ -85,6 +114,8 @@ function create() {
   spaceships = game.add.group();
   explosions = game.add.group();
 
+  bossFlames = game.add.group();
+
   setupCurrentPlayer();
   setupGroups();
   setupControls();
@@ -107,6 +138,15 @@ function setupGroups() {
   flames.setAll('anchor.x', 0.5);
   flames.setAll('anchor.y', 0.5);
   flames.forEach(function(flame) {
+    flame.animations.add('flame');
+  });
+
+  bossFlames.enableBody = true;
+  bossFlames.physicsBodyType = Phaser.Physics.ARCADE;
+  bossFlames.createMultiple(30, 'flame');
+  bossFlames.setAll('anchor.x', 0.5);
+  bossFlames.setAll('anchor.y', 0.5);
+  bossFlames.forEach(function(flame) {
     flame.animations.add('flame');
   });
 
@@ -135,7 +175,6 @@ function setupGroups() {
 
   game.physics.arcade.enable(asteroids, Phaser.Physics.ARCADE);
   game.physics.arcade.enable(spaceships, Phaser.Physics.ARCADE);
-  game.physics.arcade.enable(bossPlayer, Phaser.Physics.ARCADE);
 }
 
 function setupControls() {
@@ -443,8 +482,9 @@ function checkCollisions() {
   game.physics.arcade.collide(asteroids, eballs, eballAsteroidHandler);
   game.physics.arcade.collide(bossPlayer, currentPlayer, bossCurrentPlayerHandler);
   game.physics.arcade.collide(bossPlayer, bullets, bossBulletHandler);
-
-
+  game.physics.arcade.collide(currentPlayer, bullets, spaceshipBulletHandler);
+  game.physics.arcade.collide(currentPlayer, flames, spaceshipBulletHandler);
+  game.physics.arcade.collide(currentPlayer, eballs, spaceshipBulletHandler);
 }
 
 function bossCurrentPlayerHandler (bossPlayer, currentPlayer) {
@@ -453,15 +493,19 @@ function bossCurrentPlayerHandler (bossPlayer, currentPlayer) {
   Players.update(currentPlayer._id, {$set: {
     status: 'dead'
   }});
-
 }
-
 function bossBulletHandler (bossPlayer, currentPlayer) {
-  bossPlayer.update(bossPlayer._id, {$inc: {health: -1}});
+  BOSSPLAYER.update(bossPlayer._id, {$inc: {health: -1}});
   playExplosion(bossPlayer.body.x, bossPlayer.body.y, 0.4);
-  killAsteroidIfDead(bossPlayer);
-}
 
+  var theBoss = BOSSPLAYER.findOne(bossPlayer._id)
+  if (theBoss && theBoss.health <= 0) {
+    playExplosion(bossPlayer.body.x, bossPlayer.body.y);
+    bossPlayer.kill();
+    BOSSPLAYER.remove(theBoss._id);
+    Session.set("score", Session.get("score") + 700);
+  }
+}
 
 function spaceshipAsteroidHandler (spaceship, asteroid) {
   playExplosion(spaceship.body.x, spaceship.body.y);
@@ -472,6 +516,15 @@ function spaceshipAsteroidHandler (spaceship, asteroid) {
     status: 'dead'
   }});
   Asteroids.remove(asteroid._id);
+}
+
+function spaceshipBulletHandler (spaceship, bullet) {
+  playExplosion(spaceship.body.x, spaceship.body.y);
+  spaceship.kill();
+  bullet.kill();
+  Players.update(currentPlayer._id, {$set: {
+    status: 'dead'
+  }});
 }
 
 function flameAsteroidHandler (asteroid, flame) {

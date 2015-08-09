@@ -19,3 +19,7 @@ Meteor.publish('bullets', function() {
 Meteor.publish('scoreboard', function() {
   return Scoreboard.find();
 });
+
+Meteor.publish('bossPlayer', function() {
+  return BOSSPLAYER.find();
+});

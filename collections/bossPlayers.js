@@ -1,6 +1,6 @@
-bossPlayer = new Mongo.Collection("bossPlayer");
+BOSSPLAYER = new Mongo.Collection("bossPlayer");
 
-bossPlayer.allow({
+BOSSPLAYER.allow({
   insert: function() {
     return true;
   },
