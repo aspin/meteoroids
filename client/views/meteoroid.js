@@ -73,6 +73,7 @@ Template.meteoroid.onRendered(function() {
           _id: Session.get("userId"),
           x: sprite.x,
           y: sprite.y,
+          rotation: sprite.rotation,
           createdAt: new Date()
         });
 
@@ -119,6 +120,7 @@ Template.meteoroid.onRendered(function() {
           Players.update(Session.get("userId"), {
             x: sprite.x,
             y: sprite.y,
+            rotation: sprite.rotation,
             createdAt: new Date()
           });
         }
@@ -166,6 +168,8 @@ Template.meteoroid.onRendered(function() {
     }
 
     function render() {
+      
+      Players.find({})
     }
     
 });

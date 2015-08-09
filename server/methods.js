@@ -8,7 +8,6 @@ Meteor.methods({
     
     var inactivePlayers = Players.find({ createdAt: { $lt: t } }).count();
     var totalPlayers = Players.find({}).count();
-    console.log(inactivePlayers + "/" + totalPlayers + " removed");
     Players.remove({ createdAt: { $lt: t } });
   }
 });
