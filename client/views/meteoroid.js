@@ -219,6 +219,7 @@ Template.meteoroid.onRendered(function() {
         everyone.forEach(function(myDoc) {
           playerId = myDoc._id;
           var newSprite = game.add.sprite(myDoc.x, myDoc.y, 'ship');
+          newSprite.rotation = myDoc.rotation;
           newSprite.anchor.set(0.5);
           
           //  and its physics settings
