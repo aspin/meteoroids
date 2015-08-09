@@ -14,6 +14,9 @@ Meteor.methods({
         yvel: randomYvel
       });
     }
+
+    var numP = Players.find().count();
+    Players.update({}, { status: 'dead' });
   },
   removeInactive: function() {
     // remove players that haven't been active in 30 seconds

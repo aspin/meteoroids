@@ -8,7 +8,7 @@ var bullets, asteroids, spaceships, explosions;
 var asteroid, bullet;
 var activePlayer = false;
 
-var updatingAsteroids = false;
+var isHost = false;
 
 Template.meteoroid.onRendered(function() {
   game = new Phaser.Game(HEIGHT, WIDTH, Phaser.AUTO, 'meteoroid', { preload: preload, create: create, update: update, render: render });
@@ -97,6 +97,10 @@ function setupCurrentPlayer() {
 }
 
 function setupObservers() {
+  // if (Players.find().count() == 0) {
+  //   isHost = true;
+  //   console.log('Im the host!');
+  // }
   if (Players.find().count() >= 4) {
     alert("You may join, but others cannot see you");
   } else {
@@ -119,6 +123,8 @@ function setupObservers() {
             player.tint = fields.tint;
             player.anchor.setTo(0.5);
             playerList[id] = player;
+          } else if (fields.isHost){
+            isHost = true;
           }
         },
         changed: function(id, fields) {
@@ -148,9 +154,14 @@ function setupObservers() {
           asteroidsList[id] = asteroid;
         },
         changed: function(id, fields) {
-          fields.x && (asteroidsList[id].x = fields.x);
-          fields.y && (asteroidsList[id].y = fields.y);
-          fields.xvel && (asteroidsList[id].body.velocity = new Phaser.Point(fields.xvel, fields.yvel));
+          // fields.x && (asteroidsList[id].x = fields.x);
+          // fields.y && (asteroidsList[id].y = fields.y);
+          if (fields.x && fields.y) {
+            asteroidsList[id].reset(fields.x, fields.y);
+          }
+          // if (fields.xvel && fields.yvel) {
+          //   asteroidsList[id].body.velocity = new Phaser.Point(fields.xvel, fields.yvel);
+          // }
         },
         removed: function(id) {
           setTimeout(function(){
@@ -236,7 +247,7 @@ function spaceshipAsteroidHandler (spaceship, asteroid) {
 }
 
 function bulletAsteroidHandler (asteroid, bullets) {
-  handleAsteroidBounce(asteroid);
+  // handleAsteroidBounce(asteroid);
 }
 
 function playExplosion(x, y) {
@@ -246,10 +257,7 @@ function playExplosion(x, y) {
 }
 
 function handleAsteroidBounce(asteroid) {
-  // updatingAsteroids = true;
-  // setTimeout(function() {
-  //   updatingAsteroids = false;
-  // }, 500);
+
 }
 
 function checkPreventWrap () {
@@ -280,10 +288,9 @@ function updateData() {
       }});
     }
 
-    // if (updatingAsteroids) {
+    // if (isHost) {
     //   for (var i in asteroidsList) {
     //     var asteroid = asteroidsList[i];
-    //     console.log(asteroid.body.velocity);
     //     Asteroids.update(asteroid._id, {$set: {
     //       x: asteroid.x,
     //       y: asteroid.y,
