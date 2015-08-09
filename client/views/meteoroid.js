@@ -5,13 +5,22 @@ currentPlayer = null;
 var game;
 var playerList = {}, asteroidsList = {};
 var cursors, bullet, bulletTime = 0;
-var bullets, flames, asteroids, spaceships, explosions, space;
+var bullets, flames, eballs, eballexplodes, asteroids, spaceships, explosions, space;
 var asteroid, bullet;
 var activePlayer = false;
 var isUpdating = false;
 
 var currentWeapon = 0;
 var currentDamage = 1;
+
+Template.meteoroid.helpers({
+  score: function() {
+    return Session.get("score");
+  },
+  weapon: function() {
+    return Session.get("weapon");
+  }
+});
 
 Template.meteoroid.onRendered(function() {
   game = new Phaser.Game(WIDTH, HEIGHT, Phaser.AUTO, 'meteoroid', { preload: preload, create: create, update: update, render: render });
@@ -55,9 +64,13 @@ function preload() {
   game.load.image('fire', 'assets/games/asteroids/fire.png');
   game.load.spritesheet('flame', 'assets/games/asteroids/flame.png', 128, 128);
   game.load.spritesheet('explosion', 'assets/games/asteroids/explode.png', 128, 128);
+  game.load.spritesheet('eball', 'assets/games/asteroids/eball.png', 96, 96);
+  game.load.spritesheet('eballexplode', 'assets/games/asteroids/eballexplode.png', 96, 96);
 }
 
 function create() {
+  Session.set("score", 0);
+
   game.stage.disableVisibilityChange = true;
   game.renderer.clearBeforeRender = false;
   game.renderer.roundPixels = true;
@@ -67,6 +80,8 @@ function create() {
   asteroids = game.add.group();
   bullets = game.add.group();
   flames = game.add.group();
+  eballs = game.add.group();
+  eballexplodes = game.add.group();
   spaceships = game.add.group();
   explosions = game.add.group();
 
@@ -95,11 +110,27 @@ function setupGroups() {
     flame.animations.add('flame');
   });
 
+  eballs.enableBody = true;
+  eballs.physicsBodyType = Phaser.Physics.ARCADE;
+  eballs.createMultiple(5, 'eball');
+  eballs.setAll('anchor.x', 0.5);
+  eballs.setAll('anchor.y', 0.5);
+  eballs.forEach(function(eball) {
+    eball.animations.add('eball');
+  });
+
   explosions.createMultiple(30, 'explosion');
   explosions.forEach(function(explosion) {
     explosion.anchor.x = 0.5;
     explosion.anchor.y = 0.5;
     explosion.animations.add('explosion');
+  });
+
+  eballexplodes.createMultiple(30, 'eballexplode');
+  eballexplodes.forEach(function(eballexplode) {
+    eballexplode.anchor.x = 0.5;
+    eballexplode.anchor.y = 0.5;
+    eballexplode.animations.add('eballexplode');
   });
 
   game.physics.arcade.enable(asteroids, Phaser.Physics.ARCADE);
@@ -227,7 +258,7 @@ function setupObservers() {
 
       Bullets.find().observeChanges({
         added: function(id, fields) {
-          fireBullet(fields.x, fields.y, fields.rotation);
+          fireBullet(fields.x, fields.y, fields.rotation, fields.owner, fields.type);
         }
       })
     });
@@ -258,17 +289,23 @@ function checkControls() {
   }
 
   if (game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR)) {
-    fireBullet(currentPlayer.body.x, currentPlayer.body.y, currentPlayer.rotation);
+    if (currentPlayer.alive) {
+      fireBullet(currentPlayer.body.x, currentPlayer.body.y, currentPlayer.rotation);
+    }
   }
 
-  if (game.input.keyboard.isDown(Phaser.Keyboard.SHIFT)) {
-    currentWeapon = (currentWeapon + 1) % 3;
-  }
+  game.input.keyboard.onUpCallback = function(e){
+      if(e.keyCode == Phaser.Keyboard.SHIFT){
+        currentWeapon = (currentWeapon + 1) % 4;
+        console.log(currentWeapon);
+        Session.set("weapon", ["MultiBullets", "RapidBullets", "<span style='color: red'>Flamethrower</span>", "<span style='color: blue'>Ion Cannon</span>"][currentWeapon]);
+      }
+    };
 }
 
-function fireBullet (x, y, rotation) {
-  if (currentWeapon === 1) {
-    console.log(0);
+
+function fireBullet (x, y, rotation, owner, type) {
+  if (type === 1 || currentWeapon === 1) {
     if (game.time.now > bulletTime) {
       bullet = bullets.getFirstExists(false);
 
@@ -279,15 +316,18 @@ function fireBullet (x, y, rotation) {
         game.physics.arcade.velocityFromRotation(rotation, 400, bullet.body.velocity);
         bulletTime = game.time.now + 50;
 
-        Bullets.insert({
+        if (owner === currentPlayer._id) {
+          Bullets.remove(Bullets.insert({
           x: bullet.x,
           y: bullet.y,
           rotation: bullet.rotation,
-        });
+          owner: currentPlayer._id,
+          type: currentWeapon,
+        }));
+        }
       }
     }
-  } else if (currentWeapon === 0) {
-    console.log(1);
+  } else if (type === 0 || currentWeapon === 0) {
     if (game.time.now > bulletTime) {
 
       bullet1 = bullets.getFirstExists(false);
@@ -297,11 +337,15 @@ function fireBullet (x, y, rotation) {
         bullet1.rotation = rotation;
         game.physics.arcade.velocityFromRotation(rotation + 0.1, 400, bullet1.body.velocity);
 
-        Bullets.insert({
+        if (owner === currentPlayer._id) {
+          Bullets.remove(Bullets.insert({
           x: bullet1.x,
           y: bullet1.y,
           rotation: bullet1.rotation,
-        });
+          owner: currentPlayer._id,
+          type: currentWeapon,
+        }));
+        }
       }
 
       bullet2 = bullets.getFirstExists(false);
@@ -311,11 +355,15 @@ function fireBullet (x, y, rotation) {
         bullet2.rotation = rotation;
         game.physics.arcade.velocityFromRotation(rotation, 400, bullet2.body.velocity);
 
-        Bullets.insert({
+        if (owner === currentPlayer._id) {
+          Bullets.remove(Bullets.insert({
           x: bullet2.x,
           y: bullet2.y,
           rotation: bullet2.rotation,
-        });
+          owner: currentPlayer._id,
+          type: currentWeapon,
+        }));
+        }
       }
 
       bullet3 = bullets.getFirstExists(false);
@@ -326,33 +374,65 @@ function fireBullet (x, y, rotation) {
         game.physics.arcade.velocityFromRotation(rotation - 0.1, 400, bullet3.body.velocity);
         bulletTime = game.time.now + 500;
 
-        Bullets.insert({
+        if (owner === currentPlayer._id) {
+          Bullets.remove(Bullets.insert({
           x: bullet3.x,
           y: bullet3.y,
           rotation: bullet3.rotation,
-        });
-      }
-    }
-  } else if (currentWeapon === 2) {
-      if (game.time.now > bulletTime) {
-        bullet = flames.getFirstExists(false);
-
-        if (bullet) {
-          bullet.reset(x + 15, y + 15);
-          bullet.lifespan = 2000;
-          bullet.rotation = rotation;
-          bullet.play('flame', 30, true, true);
-
-          game.physics.arcade.velocityFromRotation(rotation, 400, bullet.body.velocity);
-          bulletTime = game.time.now + 50;
-
-          Bullets.remove(Bullets.insert({
-            x: bullet.x,
-            y: bullet.y,
-            rotation: bullet.rotation,
-          }));
+          owner: currentPlayer._id,
+          type: currentWeapon,
+        }));
         }
       }
+    }
+  } else if (type === 2 || currentWeapon === 2) {
+    if (game.time.now > bulletTime) {
+      bullet = flames.getFirstExists(false);
+
+      if (bullet) {
+        bullet.reset(x + 15, y + 15);
+        bullet.lifespan = 2000;
+        bullet.rotation = rotation;
+        bullet.play('flame', 30, true, true);
+
+        game.physics.arcade.velocityFromRotation(rotation, 400, bullet.body.velocity);
+        bulletTime = game.time.now + 50;
+
+        if (owner === currentPlayer._id) {
+          Bullets.remove(Bullets.insert({
+          x: bullet.x,
+          y: bullet.y,
+          rotation: bullet.rotation,
+          owner: currentPlayer._id,
+          type: currentWeapon,
+        }));
+        }
+      }
+    }
+  } else if (type === 3 || currentWeapon === 3) {
+    if (game.time.now > bulletTime) {
+      bullet = eballs.getFirstExists(false);
+
+      if (bullet) {
+        bullet.reset(x + 15, y + 15);
+        bullet.lifespan = 2000;
+        bullet.rotation = rotation;
+        bullet.play('eball', 30, true, true);
+
+        game.physics.arcade.velocityFromRotation(rotation, 400, bullet.body.velocity);
+        bulletTime = game.time.now + 50;
+
+        if (owner === currentPlayer._id) {
+          Bullets.remove(Bullets.insert({
+          x: bullet.x,
+          y: bullet.y,
+          rotation: bullet.rotation,
+          owner: currentPlayer._id,
+          type: currentWeapon,
+        }));
+        }
+      }
+    }
   }
 }
 
@@ -360,8 +440,10 @@ function checkCollisions() {
   game.physics.arcade.collide(asteroids, currentPlayer, spaceshipAsteroidHandler);
   game.physics.arcade.collide(asteroids, flames, flameAsteroidHandler);
   game.physics.arcade.collide(asteroids, bullets, bulletAsteroidHandler);
+  game.physics.arcade.collide(asteroids, eballs, eballAsteroidHandler);
   game.physics.arcade.collide(bossPlayer, currentPlayer, bossCurrentPlayerHandler);
   game.physics.arcade.collide(bossPlayer, bullets, bossBulletHandler);
+
 
 }
 
@@ -371,6 +453,7 @@ function bossCurrentPlayerHandler (bossPlayer, currentPlayer) {
   Players.update(currentPlayer._id, {$set: {
     status: 'dead'
   }});
+
 }
 
 function bossBulletHandler (bossPlayer, currentPlayer) {
@@ -378,8 +461,6 @@ function bossBulletHandler (bossPlayer, currentPlayer) {
   playExplosion(bossPlayer.body.x, bossPlayer.body.y, 0.4);
   killAsteroidIfDead(bossPlayer);
 }
-
-
 
 
 function spaceshipAsteroidHandler (spaceship, asteroid) {
@@ -406,12 +487,22 @@ function bulletAsteroidHandler (asteroid, bullet) {
   killAsteroidIfDead(asteroid);
 }
 
+function eballAsteroidHandler (asteroid, eball) {
+  eball.kill()
+  Asteroids.update(asteroid._id, {$inc: {health: -2}});
+  var eballexplode = eballexplodes.getFirstExists(false);
+  eballexplode.reset(asteroid.body.x, asteroid.body.y);
+  eballexplode.play('eballexplode', 30, false, true);
+  killAsteroidIfDead(asteroid);
+}
+
 function killAsteroidIfDead(asteroid) {
   var theAst = Asteroids.findOne(asteroid._id)
   if (theAst && theAst.health <= 0) {
     playExplosion(asteroid.body.x, asteroid.body.y);
     asteroid.kill();
     Asteroids.remove(asteroid._id);
+    Session.set("score", Session.get("score") + 10);
   }
 }
 
@@ -440,7 +531,6 @@ function handleAsteroidBounce(asteroid) {
 }
 
 function checkPreventWrap () {
-  // console.log(currentPlayer);
   if (currentPlayer.x < 0) {
     currentPlayer.x = game.width;
   } else if (currentPlayer.x > game.width) {

@@ -1,7 +1,13 @@
 <template name="meteoroid">
   <div class="container-fluid">
+    {{> loginButtons}}
     <div class="row text-center">
-      <div id="meteoroid"></div>
+      <div id="meteoroid">
+        <h4>Score: {{score}}</h4>
+        <p>SHIFT to cycle through weapons <br>
+          SELECTED: {{{weapon}}}
+        </p>
+      </div>
       <div class="button-container">
         <button id="levelOne" class="btn btn-success">Level One</button>
         <button id="levelTwo" class="btn btn-warning">Level Two</button>

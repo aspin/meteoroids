@@ -1,9 +1,24 @@
 #meteoroid {
   width: 1066px;
   height: 600px;
-  margin: 30px auto;
+  margin: 10px auto 25px auto;
+  position: relative;
 }
 
 .button-container {
   margin: 10px auto;
+}
+
+h4 {
+  color: white;
+  position: absolute;
+  top: 0;
+  right: 15px;
+}
+
+p {
+  color: white;
+  position: absolute;
+  bottom: 0;
+  right: 15px;
 }
