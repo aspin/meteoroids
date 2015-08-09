@@ -272,7 +272,12 @@ function spaceshipAsteroidHandler (spaceship, asteroid) {
 }
 
 function bulletAsteroidHandler (asteroid, bullets) {
-  // handleAsteroidBounce(asteroid);
+  Asteroids.update(asteroid._id, {$inc: {health: -1}});
+  if (Asteroids.findOne(asteroid._id).health <= 0) {
+    playExplosion(asteroid.body.x, asteroid.body.y);
+    asteroid.kill();
+    Asteroids.remove(asteroid._id);
+  }
 }
 
 function playExplosion(x, y) {
