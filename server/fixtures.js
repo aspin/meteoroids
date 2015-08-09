@@ -4,4 +4,5 @@ Meteor.startup(function () {
   });
   var t = setInterval(boundFunction, 500);
   Players.remove({});
+  BOSSPLAYER.remove({});
 });

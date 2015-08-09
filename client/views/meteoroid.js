@@ -40,51 +40,20 @@ Template.meteoroid.onRendered(function() {
 
 Template.meteoroid.events({
   "click #levelOne": function(event, template){
-    // bossPlayer && bossPlayer.kill();
+    bossPlayer && bossPlayer.kill();
     Meteor.call("levelOne");
   },
   "click #levelTwo": function(event, template){
-    // bossPlayer && bossPlayer.kill();
+    bossPlayer && bossPlayer.kill();
     Meteor.call("levelTwo");
   },
   "click #levelThree": function(event, template){
-    // bossPlayer && bossPlayer.kill();
+    bossPlayer && bossPlayer.kill();
     Meteor.call("levelThree");
   },
   "click #levelFour": function(event, template){
-    // bossPlayer && bossPlayer.kill();
+    bossPlayer && bossPlayer.kill();
     Meteor.call("levelFour");
-    bossPlayer = game.add.sprite(500, 300, 'boss');
-    bossPlayer.anchor.setTo(0.5);
-    bossPlayer.enableBody= true;
-    bossPlayer.physicsBodyType = Phaser.Physics.ARCADE;
-    game.physics.arcade.enable(bossPlayer, Phaser.Physics.ARCADE);
-    bossPlayer.body.immovable = true;
-    bossPlayer.collideWorldBounds=true;
-    bossPlayer.body.bounce.setTo(0.2,0.2);
-
-
-    setInterval(function() {
-      if (bossPlayer.alive) {
-        for(var i = 0; i < 25; i++) {
-          bullet = flames.getFirstExists(false);
-
-          if (bullet) {
-            bullet.reset(bossPlayer.body.x, bossPlayer.body.y);
-            bullet.lifespan = 2000;
-            bullet.play('flame', 30, true, true);
-
-            var randomXvel = Math.floor(Math.random() * 500) - 250;
-            var randomYvel = Math.floor(Math.random() * 500) - 250;
-
-            bullet.body.velocity = new Phaser.Point(randomXvel, randomYvel);
-            bullet.rotation = Math.atan(randomYvel, randomXvel);
-            console.log(Math.atan(randomYvel, randomXvel));
-          }
-        }
-      }
-    }, 2500);
-
   }
 });
 
@@ -307,6 +276,42 @@ function setupObservers() {
         added: function(id, fields) {
           fireBullet(fields.x, fields.y, fields.rotation, fields.owner, fields.type);
         }
+      });
+
+      BOSSPLAYER.find().observeChanges({
+        added: function(id, fields) {
+          bossPlayer = game.add.sprite(500, 300, 'boss');
+          bossPlayer._id = id;
+          bossPlayer.anchor.setTo(0.5);
+          bossPlayer.enableBody= true;
+          bossPlayer.physicsBodyType = Phaser.Physics.ARCADE;
+          game.physics.arcade.enable(bossPlayer, Phaser.Physics.ARCADE);
+          bossPlayer.body.immovable = true;
+          bossPlayer.collideWorldBounds=true;
+          bossPlayer.body.bounce.setTo(0.2,0.2);
+
+
+          setInterval(function() {
+            if (bossPlayer.alive) {
+              for(var i = 0; i < 25; i++) {
+                bullet = flames.getFirstExists(false);
+
+                if (bullet) {
+                  bullet.reset(bossPlayer.body.x, bossPlayer.body.y);
+                  bullet.lifespan = 2000;
+                  bullet.play('flame', 30, true, true);
+
+                  var randomXvel = Math.floor(Math.random() * 500) - 250;
+                  var randomYvel = Math.floor(Math.random() * 500) - 250;
+
+                  bullet.body.velocity = new Phaser.Point(randomXvel, randomYvel);
+                  bullet.rotation = Math.atan(randomYvel, randomXvel);
+                  console.log(Math.atan(randomYvel, randomXvel));
+                }
+              }
+            }
+          }, 2500);
+        }
       })
     });
   }
@@ -490,6 +495,7 @@ function checkCollisions() {
   game.physics.arcade.collide(asteroids, eballs, eballAsteroidHandler);
   game.physics.arcade.collide(bossPlayer, currentPlayer, bossCurrentPlayerHandler);
   game.physics.arcade.collide(bossPlayer, bullets, bossBulletHandler);
+  game.physics.arcade.collide(bossPlayer, eballs, bossBulletHandler);
   game.physics.arcade.collide(currentPlayer, bullets, spaceshipBulletHandler);
   game.physics.arcade.collide(currentPlayer, flames, spaceshipBulletHandler);
   game.physics.arcade.collide(currentPlayer, eballs, spaceshipBulletHandler);
@@ -501,7 +507,7 @@ function bossCurrentPlayerHandler (bossPlayer, currentPlayer) {
   Players.update(currentPlayer._id, {$set: {
     status: 'dead'
   }});
-  
+
   if(Meteor.user()) {
     var username = Meteor.user().username;
     var score = Scoreboard.findOne(username);
@@ -531,6 +537,8 @@ function bossCurrentPlayerHandler (bossPlayer, currentPlayer) {
   } else {
     // console.log("not logged in");
   }
+}
+
 function bossBulletHandler (bossPlayer, currentPlayer) {
   BOSSPLAYER.update(bossPlayer._id, {$inc: {health: -1}});
   playExplosion(bossPlayer.body.x, bossPlayer.body.y, 0.4);
