@@ -77,31 +77,29 @@ function create() {
     alert("You may join, but others cannot see you");
   } else {
     activePlayer = true;
+
     playerId = Players.insert({
       x: playerSpaceship.x,
       y: playerSpaceship.y,
       rotation: playerSpaceship.rotation,
       createdAt: new Date()
+    }, function() {
+      Players.find().observeChanges({
+        added: function(id, fields) {
+          fields._id = id;
+          addPlayer(fields);
+        },
+        changed: function(id, fields) {
+          fields.x && (players[id].x = fields.x);
+          fields.y && (players[id].y = fields.y);
+          fields.rotation && (players[id].rotation = fields.rotation);
+        },
+        removed: function(id) {
+          players[id].destroy();
+        }
+      });
     });
 
-    Players.find().forEach(function(player) {
-      addPlayer(player);
-    })
-
-    Players.find().observeChanges({
-      added: function(id, fields) {
-        fields._id = id;
-        addPlayer(fields);
-      },
-      changed: function(id, fields) {
-        fields.x && (players[id].x = fields.x);
-        fields.y && (players[id].y = fields.y);
-        fields.rotation && (players[id].rotation = fields.rotation);
-      },
-      removed: function(id) {
-        players[id].destroy();
-      }
-    });
 
     Asteroids.find().observeChanges({
       added: function(id, fields) {
@@ -112,7 +110,7 @@ function create() {
           if (asteroid._id == id) {
             setTimeout(function(){
               if (asteroid) {
-                asteroid.kill(); 
+                asteroid.kill();
               }
             }, 500);
           }
