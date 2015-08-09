@@ -38,22 +38,21 @@ function create() {
   game.renderer.roundPixels = true;
   game.physics.startSystem(Phaser.Physics.ARCADE);
   game.add.tileSprite(0, 0, game.width, game.height, 'space');
-
+  
   asteroids = game.add.group();
   asteroids.enableBody = true;
   asteroids.physicsBodyType = Phaser.Physics.ARCADE;
-
   game.physics.arcade.enable(asteroids, Phaser.Physics.ARCADE);
 
   bullets = game.add.group();
   bullets.enableBody = true;
   bullets.physicsBodyType = Phaser.Physics.ARCADE;
-  bullets.createMultiple(3, 'bullet');
+  bullets.createMultiple(20, 'bullet');
   bullets.setAll('anchor.x', 0.5);
   bullets.setAll('anchor.y', 0.5);
 
   playerSpaceship = game.add.sprite(50, 50, 'ship');
-  playerSpaceship.anchor.set(0.5);
+  playerSpaceship.anchor.setTo(0.5);
   game.physics.enable(playerSpaceship, Phaser.Physics.ARCADE);
   playerSpaceship.body.drag.set(100);
   playerSpaceship.body.maxVelocity.set(400);
@@ -62,7 +61,6 @@ function create() {
 
   explosions = game.add.group();
   explosions.createMultiple(30, 'explosion');
-
   explosions.forEach(function(asteroid) {
     asteroid.anchor.x = 0.5;
     asteroid.anchor.y = 0.5;
@@ -142,6 +140,7 @@ function update() {
   for (var pid in players) {
     game.physics.arcade.collide(asteroids, players[pid], collisionHandler, null, this);
   }
+  
 
   screenWrap(playerSpaceship);
 
@@ -177,13 +176,18 @@ function fireBullet () {
 
     if (bullet)
     {
-      bullet.reset(playerSpaceship.body.x + 16, playerSpaceship.body.y + 16);
+      bullet.reset(playerSpaceship.body.x + 15, playerSpaceship.body.y + 15);
       bullet.lifespan = 2000;
       bullet.rotation = playerSpaceship.rotation;
       game.physics.arcade.velocityFromRotation(playerSpaceship.rotation, 400, bullet.body.velocity);
       bulletTime = game.time.now + 50;
     }
+    game.physics.arcade.collide(asteroids, bullets, bulletAsteroidHandler, null, this);
   }
+}
+
+function bulletAsteroidHandler (bullets, asteroid) {
+  console.log("open fire!");
 }
 
 function screenWrap (sprite) {
