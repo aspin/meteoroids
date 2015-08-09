@@ -2,8 +2,16 @@
   width: 1066px;
   height: 600px;
   margin: 30px auto;
+  position: relative;
 }
 
 .button-container {
   margin: 10px auto;
+}
+
+p {
+  color: white;
+  position: absolute;
+  bottom: 0;
+  right: 10px;
 }
