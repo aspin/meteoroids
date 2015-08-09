@@ -4,5 +4,4 @@ Meteor.startup(function () {
   });
   var t = setInterval(boundFunction, 500);
   
-  Meteor.call('createAsteroids', 5, 1066, 600);
 });

@@ -44,18 +44,7 @@ function create() {
   asteroids = game.add.group();
   asteroids.enableBody = true;
   asteroids.physicsBodyType = Phaser.Physics.ARCADE;
-<<<<<<< HEAD
-
-  Asteroids.find().forEach(function(ast) {
-    asteroid = asteroids.create(ast.x, ast.y, 'asteroid');
-    console.log(ast);
-    asteroid.body.velocity = new Phaser.Point(ast.xvel, ast.yvel);
-    asteroid.body.collideWorldBounds=true;
-    asteroid.body.bounce.setTo(1, 1);
-  });
-
-=======
->>>>>>> added game starting
+  
   game.physics.arcade.enable(asteroids, Phaser.Physics.ARCADE);
 
   bullets = game.add.group();
@@ -192,9 +181,10 @@ function render() {
 }
 
 function drawAsteroids() {
-  Asteroids.find().forEach(function(asteroid) {
-    asteroid = asteroids.create(asteroid.x, asteroid.y, 'asteroid');
+  Asteroids.find().forEach(function(ast) {
+    asteroid = asteroids.create(ast.x, ast.y, 'asteroid');
+    asteroid.body.velocity = new Phaser.Point(ast.xvel, ast.yvel);
     asteroid.body.collideWorldBounds=true;
-    asteroid.body.bounce.setTo(0.1, 0.1);
+    asteroid.body.bounce.setTo(1, 1);
   });
 }
