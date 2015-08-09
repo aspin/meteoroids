@@ -22,10 +22,6 @@ Template.meteoroid.helpers({
   }
 });
 
-Accounts.ui.config({
-    passwordSignupFields: "USERNAME_ONLY"
-});
-
 Template.meteoroid.onRendered(function() {
   game = new Phaser.Game(WIDTH, HEIGHT, Phaser.AUTO, 'meteoroid', { preload: preload, create: create, update: update, render: render });
   window.onbeforeunload = function() {
@@ -282,10 +278,12 @@ function checkControls() {
   }
 
   if (game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR)) {
-    fireBullet(currentPlayer.body.x, currentPlayer.body.y, currentPlayer.rotation);
+    if (currentPlayer.alive) {
+      fireBullet(currentPlayer.body.x, currentPlayer.body.y, currentPlayer.rotation);
+    }
   }
 
-  game.input.keyboard.onUpCallback = function( e ){
+  game.input.keyboard.onUpCallback = function(e){
       if(e.keyCode == Phaser.Keyboard.SHIFT){
         currentWeapon = (currentWeapon + 1) % 4;
         console.log(currentWeapon);
@@ -443,38 +441,6 @@ function spaceshipAsteroidHandler (spaceship, asteroid) {
     status: 'dead'
   }});
   Asteroids.remove(asteroid._id);
-  
-  if(Meteor.user()) {
-    var username = Meteor.user().username;
-    var score = Scoreboard.findOne(username);
-    // console.log(score);
-    
-    if (score) {
-      
-      var oldScore = score.score;
-      var newScore = Session.get("score");
-      // console.log("existing score found, old: " + oldScore + " new: " + newScore);
-      
-      if (newScore > oldScore) {
-        Scoreboard.update({_id: username}, {$set: {
-          score: newScore,
-          createdAt: new Date()
-        }});
-        // console.log("overwriting");
-      }
-    } else {
-      // console.log("inserting new score");
-      Scoreboard.insert({
-        _id: username,
-        score: Session.get("score"),
-        createdAt: new Date()
-      });
-    }
-  } else {
-    // console.log("not logged in");
-  }
-  
-  Session.set("score", 0);
 }
 
 function flameAsteroidHandler (asteroid, flame) {
