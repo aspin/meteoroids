@@ -23,12 +23,13 @@ Template.meteoroid.onRendered(function() {
 
 Template.meteoroid.events({
   "click #levelOne": function(event, template){
-    Meteor.call("levelOne", function(error, result){
-      if(error){
-        console.log("error", error);
-      } else {
-      }
-    });
+    Meteor.call("levelOne");
+  },
+  "click #levelTwo": function(event, template){
+    Meteor.call("levelTwo");
+  },
+  "click #levelThree": function(event, template){
+    Meteor.call("levelThree");
   }
 });
 
@@ -190,6 +191,7 @@ function setupObservers() {
           asteroid.body.velocity = new Phaser.Point(fields.xvel, fields.yvel);
           asteroid.body.collideWorldBounds=true;
           asteroid.body.bounce.setTo(1, 1);
+          asteroid.scale.set(fields.scale, fields.scale);
           asteroidsList[id] = asteroid;
         },
         changed: function(id, fields) {
