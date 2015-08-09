@@ -16,6 +16,7 @@ Template.meteoroid.onRendered(function() {
         game.load.image('bullet', 'assets/games/asteroids/bullets.png');
         game.load.image('ship', 'assets/games/asteroids/ship3.png');
         game.load.image('asteroid', 'assets/games/asteroids/asteroid.png');
+        game.load.spritesheet('explosion', 'assets/games/asteroids/explode.png', 128, 128);
 
     }
 
@@ -29,6 +30,7 @@ Template.meteoroid.onRendered(function() {
     var asteroids;
     var randomXPosition; 
     var randomYPosition;
+    var explosions;
     
     var players = {};
 
@@ -67,7 +69,7 @@ Template.meteoroid.onRendered(function() {
         bullets.physicsBodyType = Phaser.Physics.ARCADE;
 
         //  Shoot 3 bullets at once
-        bullets.createMultiple(1, 'bullet');
+        bullets.createMultiple(3, 'bullet');
         bullets.setAll('anchor.x', 0.5);
         bullets.setAll('anchor.y', 0.5);
 
@@ -83,6 +85,9 @@ Template.meteoroid.onRendered(function() {
         sprite.body.collideWorldBounds=true;
         sprite.body.bounce.setTo(0.2,0.2);
 
+        explosions = game.add.group();
+        explosions.createMultiple(30, 'explosion');
+        explosions.forEach(setupAsteroid, this);
         //  Game input
         cursors = game.input.keyboard.createCursorKeys();
         game.input.keyboard.addKeyCapture([ Phaser.Keyboard.SPACEBAR ]);
@@ -133,9 +138,7 @@ Template.meteoroid.onRendered(function() {
         {
             fireBullet();
         }
-
-
-        game.physics.arcade.collide(asteroids, sprite, blowUp, null, this);
+        game.physics.arcade.collide(asteroids, sprite, collisionHandler, null, this);
 
         screenWrap(sprite);
 
@@ -159,9 +162,17 @@ Template.meteoroid.onRendered(function() {
         }
         
     }
+    function setupAsteroid (asteroid) {
+        asteroid.anchor.x = 0.5;
+        asteroid.anchor.y = 0.5;
+        asteroid.animations.add('explosion');
 
-    function blowUp() {
-        console.log("Blowing up");
+    }
+    function collisionHandler (asteriods, sprite) {
+        sprite.kill();
+        var explosion = explosions.getFirstExists(false);
+        explosion.reset(sprite.body.x, sprite.body.y);
+        explosion.play('explosion', 30, false, true);
     }
 
     function fireBullet () {
