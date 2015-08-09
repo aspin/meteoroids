@@ -7,229 +7,217 @@
 */
 
 Template.meteoroid.onRendered(function() {
-    // add javascript to be executed when the template first_view is rendered
-    var game = new Phaser.Game(1200, 1000, Phaser.AUTO, 'phaser-example', { preload: preload, create: create, update: update, render: render });
+  Meteor.subscribe("players");
+  
+  // add javascript to be executed when the template first_view is rendered
+  var game = new Phaser.Game(1200, 1000, Phaser.AUTO, 'phaser-example', { preload: preload, create: create, update: update, render: render });
 
-    function preload() {
+  function preload() {
+      game.load.image('space', 'assets/skies/deep-space.jpg');
+      game.load.image('bullet', 'assets/games/asteroids/bullets.png');
+      game.load.image('ship', 'assets/games/asteroids/ship3.png');
+      game.load.image('asteroid', 'assets/games/asteroids/asteroid.png');
 
-        game.load.image('space', 'assets/skies/deep-space.jpg');
-        game.load.image('bullet', 'assets/games/asteroids/bullets.png');
-        game.load.image('ship', 'assets/games/asteroids/ship3.png');
-        game.load.image('asteroid', 'assets/games/asteroids/asteroid.png');
+  }
 
+  var sprite;
+  var cursors;
+
+  var bullet;
+  var bullets;
+  var bulletTime = 0;
+  var asteroid;
+  var asteroids;
+  var randomXPosition; 
+  var randomYPosition;
+  
+  var players = {};
+  var gameOver = false;
+
+  function create() {
+
+      //  This will run in Canvas mode, so let's gain a little speed and display
+      game.renderer.clearBeforeRender = false;
+      game.renderer.roundPixels = true;
+
+      //  We need arcade physics
+      game.physics.startSystem(Phaser.Physics.ARCADE);
+
+      //  A spacey background
+      game.add.tileSprite(0, 0, game.width, game.height, 'space');
+
+      // Create asteroid in random positions 
+      
+      asteroids = game.add.group();
+      asteroids.enableBody = true;
+      asteroids.physicsBodyType = Phaser.Physics.ARCADE;
+
+      for(var i = 0; i < 5; i++) {
+          randomXPosition = Math.floor(Math.random() * 1000) + 100;
+          randomYPosition = Math.floor(Math.random() * 800) + 100;
+          asteroid = asteroids.create(randomXPosition, randomYPosition, 'asteroid');
+          asteroid.body.collideWorldBounds=true;
+          asteroid.body.bounce.setTo(0.1, 0.1);
+
+      }
+     
+      game.physics.arcade.enable(asteroids, Phaser.Physics.ARCADE);
+
+      //  Our ships bullets
+      bullets = game.add.group();
+      bullets.enableBody = true;
+      bullets.physicsBodyType = Phaser.Physics.ARCADE;
+
+      //  Shoot 3 bullets at once
+      bullets.createMultiple(1, 'bullet');
+      bullets.setAll('anchor.x', 0.5);
+      bullets.setAll('anchor.y', 0.5);
+
+      //  Our player ship
+      sprite = game.add.sprite(50, 50, 'ship');
+      sprite.anchor.set(0.5);
+
+      //  and its physics settings
+      game.physics.enable(sprite, Phaser.Physics.ARCADE);
+
+      sprite.body.drag.set(100);
+      sprite.body.maxVelocity.set(400);
+      sprite.body.collideWorldBounds=true;
+      sprite.body.bounce.setTo(0.2,0.2);
+
+      //  Game input
+      cursors = game.input.keyboard.createCursorKeys();
+      game.input.keyboard.addKeyCapture([ Phaser.Keyboard.SPACEBAR ]);
+      
+      // ** CUSTOM CODE **
+      var id = parseInt(Math.random() * 1000000).toString();
+      Session.set("userId", id);
+      
+      Meteor.call("addPlayer", id, sprite.x, sprite.y, sprite.rotation);
+  }
+
+  function update() {
+    // UP
+    if (cursors.up.isDown)
+    {
+        game.physics.arcade.accelerationFromRotation(sprite.rotation, 200, sprite.body.acceleration);
     }
-
-    var sprite;
-    var cursors;
-
-    var bullet;
-    var bullets;
-    var bulletTime = 0;
-    var asteroid;
-    var asteroids;
-    var randomXPosition; 
-    var randomYPosition;
+    else
+    {
+        sprite.body.acceleration.set(0);
+    }
     
-    var players = {};
-    var gameOver = false;
-
-    function create() {
-
-        //  This will run in Canvas mode, so let's gain a little speed and display
-        game.renderer.clearBeforeRender = false;
-        game.renderer.roundPixels = true;
-
-        //  We need arcade physics
-        game.physics.startSystem(Phaser.Physics.ARCADE);
-
-        //  A spacey background
-        game.add.tileSprite(0, 0, game.width, game.height, 'space');
-
-        // Create asteroid in random positions 
-        
-        asteroids = game.add.group();
-        asteroids.enableBody = true;
-        asteroids.physicsBodyType = Phaser.Physics.ARCADE;
-
-        for(var i = 0; i < 5; i++) {
-            randomXPosition = Math.floor(Math.random() * 1000) + 100;
-            randomYPosition = Math.floor(Math.random() * 800) + 100;
-            asteroid = asteroids.create(randomXPosition, randomYPosition, 'asteroid');
-            asteroid.body.collideWorldBounds=true;
-            asteroid.body.bounce.setTo(0.1, 0.1);
-
-        }
-       
-        game.physics.arcade.enable(asteroids, Phaser.Physics.ARCADE);
-
-        //  Our ships bullets
-        bullets = game.add.group();
-        bullets.enableBody = true;
-        bullets.physicsBodyType = Phaser.Physics.ARCADE;
-
-        //  Shoot 3 bullets at once
-        bullets.createMultiple(1, 'bullet');
-        bullets.setAll('anchor.x', 0.5);
-        bullets.setAll('anchor.y', 0.5);
-
-        //  Our player ship
-        sprite = game.add.sprite(50, 50, 'ship');
-        sprite.anchor.set(0.5);
-
-        //  and its physics settings
-        game.physics.enable(sprite, Phaser.Physics.ARCADE);
-
-        sprite.body.drag.set(100);
-        sprite.body.maxVelocity.set(400);
-        sprite.body.collideWorldBounds=true;
-        sprite.body.bounce.setTo(0.2,0.2);
-
-        //  Game input
-        cursors = game.input.keyboard.createCursorKeys();
-        game.input.keyboard.addKeyCapture([ Phaser.Keyboard.SPACEBAR ]);
-        
-        // ** CUSTOM CODE **
-        var id = parseInt(Math.random() * 1000000).toString();
-        Session.set("userId", id);
-        // console.log("player " + Session.get("userId") + " at location (" + sprite.x + "," + sprite.y + ")");
-        
-        // Initialize database with location
-        // console.log(Session.get("userId"));
-        // console.log(sprite.x + sprite.y);
-        Players.insert({
-          _id: Session.get("userId"),
-          x: sprite.x,
-          y: sprite.y,
-          rotation: sprite.rotation,
-          createdAt: new Date()
-        });
-
+    // LEFT_RIGHT
+    if (cursors.left.isDown)
+    {
+        sprite.body.angularVelocity = -300;
+    }
+    else if (cursors.right.isDown)
+    {
+        sprite.body.angularVelocity = 300;
+    }
+    else
+    {
+        sprite.body.angularVelocity = 0;
     }
 
-    function update() {
-
-        if (cursors.up.isDown)
-        {
-            game.physics.arcade.accelerationFromRotation(sprite.rotation, 200, sprite.body.acceleration);
-        }
-        else
-        {
-            sprite.body.acceleration.set(0);
-        }
-
-        if (cursors.left.isDown)
-        {
-            sprite.body.angularVelocity = -300;
-        }
-        else if (cursors.right.isDown)
-        {
-            sprite.body.angularVelocity = 300;
-        }
-        else
-        {
-            sprite.body.angularVelocity = 0;
-        }
-
-        if (game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR))
-        {
-            fireBullet();
-        }
-
-
-        game.physics.arcade.collide(asteroids, sprite, blowUp, null, this);
-
-        screenWrap(sprite);
-
-        bullets.forEachExists(screenWrap, this);
-        
-        // ** CUSTOM CODE **
-        var me = Players.findOne({_id: Session.get("userId")});
-        if (typeof me === "undefined" && !gameOver) {
-          alert("You have been disconnected due to inactivity");
-          gameOver = true;
-          return;
-        }
-        if (me.x === sprite.x && me.y === sprite.y) {
-          // console.log("Not moving, no update");
-        } else {
-          Players.update({_id: Session.get("userId")}, {
-            x: sprite.x,
-            y: sprite.y,
-            rotation: sprite.rotation,
-            createdAt: new Date()
-          });
-        }
-        
+    // FIRE
+    if (game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR))
+    {
+        fireBullet();
     }
-
-    function blowUp() {
-        console.log("Blowing up");
-    }
-
-    function fireBullet () {
-
-        if (game.time.now > bulletTime)
-        {
-            bullet = bullets.getFirstExists(false);
-
-            if (bullet)
-            {
-                bullet.reset(sprite.body.x + 16, sprite.body.y + 16);
-                bullet.lifespan = 2000;
-                bullet.rotation = sprite.rotation;
-                game.physics.arcade.velocityFromRotation(sprite.rotation, 400, bullet.body.velocity);
-                bulletTime = game.time.now + 50;
-            }
-        }
-
-    }
-
-    function screenWrap (sprite) {
-
-        if (sprite.x < 0)
-        {
-            sprite.x = game.width;
-        }
-        else if (sprite.x > game.width)
-        {
-            sprite.x = 0;
-        }
-
-        if (sprite.y < 0)
-        {
-            sprite.y = game.height;
-        }
-        else if (sprite.y > game.height)
-        {
-            sprite.y = 0;
-        }
-
-    }
-
-    function render() {
-      
-      for (var key in players) {
-        if (players.hasOwnProperty(key)) {
-          players[key].destroy();
-        }
+    
+    game.physics.arcade.collide(asteroids, sprite, blowUp, null, this);
+    screenWrap(sprite);
+    bullets.forEachExists(screenWrap, this);
+    
+    var me = Players.findOne({_id: Session.get("userId")});
+    if (typeof me === "undefined") {
+      if (!gameOver) {
+        gameOver = true;
+        alert("disconnected for being inactive");
       }
       
-      var everyone = Players.find({_id: { $ne: Session.get("userId") }});
-      if (everyone.count() > 0) {
-        everyone.forEach(function(myDoc) {
-          playerId = myDoc._id;
-          var newSprite = game.add.sprite(myDoc.x, myDoc.y, 'ship');
-          newSprite.rotation = myDoc.rotation;
-          newSprite.anchor.set(0.5);
-          
-          //  and its physics settings
-          game.physics.enable(newSprite, Phaser.Physics.ARCADE);
-
-          newSprite.body.drag.set(100);
-          newSprite.body.maxVelocity.set(200);
-          
-          players[playerId] = newSprite;
-        });
-      }
+      return;
     }
+    
+    console.log(me.x + " " + me.y + " " + sprite.x + " " + sprite.y);
+    if (me.x === sprite.x && me.y === sprite.y) {
+      console.log("no change");
+    } else {
+      var id = Session.get("userId");
+      Meteor.call("updatePlayer", id, sprite.x, sprite.y, sprite.rotation);
+    }
+  }
+
+  function blowUp() {
+      console.log("Blowing up");
+  }
+
+  function fireBullet () {
+
+      if (game.time.now > bulletTime)
+      {
+          bullet = bullets.getFirstExists(false);
+
+          if (bullet)
+          {
+              bullet.reset(sprite.body.x + 16, sprite.body.y + 16);
+              bullet.lifespan = 2000;
+              bullet.rotation = sprite.rotation;
+              game.physics.arcade.velocityFromRotation(sprite.rotation, 400, bullet.body.velocity);
+              bulletTime = game.time.now + 50;
+          }
+      }
+
+  }
+
+  function screenWrap (sprite) {
+
+      if (sprite.x < 0)
+      {
+          sprite.x = game.width;
+      }
+      else if (sprite.x > game.width)
+      {
+          sprite.x = 0;
+      }
+
+      if (sprite.y < 0)
+      {
+          sprite.y = game.height;
+      }
+      else if (sprite.y > game.height)
+      {
+          sprite.y = 0;
+      }
+
+  }
+
+  function render() {
+    
+    // for (var key in players) {
+    //   if (players.hasOwnProperty(key)) {
+    //     players[key].destroy();
+    //   }
+    // }
+    // 
+    // var everyone = Players.find({_id: { $ne: Session.get("userId") }});
+    // if (everyone.count() > 0) {
+    //   everyone.forEach(function(myDoc) {
+    //     playerId = myDoc._id;
+    //     var newSprite = game.add.sprite(myDoc.x, myDoc.y, 'ship');
+    //     newSprite.rotation = myDoc.rotation;
+    //     newSprite.anchor.set(0.5);
+    //     
+    //     //  and its physics settings
+    //     game.physics.enable(newSprite, Phaser.Physics.ARCADE);
+    // 
+    //     newSprite.body.drag.set(100);
+    //     newSprite.body.maxVelocity.set(200);
+    //     
+    //     players[playerId] = newSprite;
+    //   });
+    // }
+  }
 });
