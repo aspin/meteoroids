@@ -72,7 +72,8 @@ Template.meteoroid.onRendered(function() {
         Players.insert({
           _id: Session.get("userId"),
           x: sprite.x,
-          y: sprite.y
+          y: sprite.y,
+          createdAt: new Date()
         });
 
     }
@@ -111,13 +112,16 @@ Template.meteoroid.onRendered(function() {
         bullets.forEachExists(screenWrap, this);
         
         // ** CUSTOM CODE **
-        Players.update(Session.get("userId"), {
-          x: sprite.x,
-          y: sprite.y
-        });
-        
         var me = Players.findOne({_id: Session.get("userId")});
-        console.log(me._id + " " + me.x + " " + me.y);
+        if (me.x === sprite.x && me.y === sprite.y) {
+          // console.log("Not moving, no update");
+        } else {
+          Players.update(Session.get("userId"), {
+            x: sprite.x,
+            y: sprite.y,
+            createdAt: new Date()
+          });
+        }
         
     }
 
