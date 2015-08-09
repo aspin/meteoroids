@@ -16,6 +16,9 @@ var currentDamage = 1;
 Template.meteoroid.helpers({
   score: function() {
     return Session.get("score");
+  },
+  weapon: function() {
+    return Session.get("weapon");
   }
 });
 
@@ -57,7 +60,7 @@ function preload() {
 
 function create() {
   Session.set("score", 0);
-  
+
   game.stage.disableVisibilityChange = true;
   game.renderer.clearBeforeRender = false;
   game.renderer.roundPixels = true;
@@ -278,9 +281,13 @@ function checkControls() {
     fireBullet(currentPlayer.body.x, currentPlayer.body.y, currentPlayer.rotation);
   }
 
-  if (game.input.keyboard.isDown(Phaser.Keyboard.SHIFT)) {
-    currentWeapon = (currentWeapon + 1) % 4;
-  }
+  game.input.keyboard.onUpCallback = function( e ){
+      if(e.keyCode == Phaser.Keyboard.SHIFT){
+        currentWeapon = (currentWeapon + 1) % 4;
+        console.log(currentWeapon);
+        Session.set("weapon", ["MultiBullets", "RapidBullets", "<span style='color: red'>Flamethrower</span>", "<span style='color: blue'>Ion Cannon</span>"][currentWeapon]);
+      }
+    };
 }
 
 
