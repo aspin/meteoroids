@@ -108,6 +108,13 @@ function create() {
     Asteroids.find().observeChanges({
       added: function(id, fields) {
         drawAsteroids();
+      },
+      removed: function(id) {
+        asteroids.forEach(function(asteroid) {
+          if (asteroid._id == id) {
+            asteroid.kill();
+          }
+        })
       }
     })
   }
@@ -155,6 +162,8 @@ function update() {
 }
 
 function collisionHandler (playerSpaceship, asteroid) {
+  console.log('collision!');
+  console.log(playerSpaceship);
   Asteroids.remove({_id: asteroid._id});
   asteroid.kill();
   var explosion = explosions.getFirstExists(false);
