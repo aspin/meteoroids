@@ -20,11 +20,31 @@ Template.meteoroid.helpers({
   scoreboard: function() {
     // return Scoreboard.find({}).sort({ score: -1 }).limit(10);
     return Scoreboard.find({}, {sort: { score: -1 }}, { limit: 10 });
+  },table.gridtable {
+	font-family: verdana,arial,sans-serif;
+	font-size:11px;
+	color:#333333;
+	border-width: 1px;
+	border-color: #666666;
+	border-collapse: collapse;
+}
+table.gridtable th {
+	border-width: 1px;
+	padding: 8px;
+	border-style: solid;
+	border-color: #666666;
+	background-color: #dedede;
+}
+table.gridtable td {
+	border-width: 1px;
+	padding: 8px;
+	border-style: solid;
+	border-color: #666666;
+	background-color: #ffffff;
+}
+  weapon: function() {
+    return Session.get("weapon");
   }
-});
-
-Accounts.ui.config({
-    passwordSignupFields: "USERNAME_ONLY"
 });
 
 Template.meteoroid.onRendered(function() {
@@ -44,6 +64,15 @@ Template.meteoroid.events({
   },
   "click #levelThree": function(event, template){
     Meteor.call("levelThree");
+  },
+  "click #levelFour": function(event, template){
+    Meteor.call("levelFour");
+    bossPlayer = game.add.sprite(300, 500, 'boss');
+    bossPlayer.anchor.setTo(0.5);
+    bossPlayer.enableBody= true;
+    bossPlayer.collideWorldBounds= true;
+    game.physics.arcade.enable(bossPlayer, Phaser.Physics.ARCADE);
+
   }
 });
 
@@ -55,9 +84,10 @@ function preload() {
   game.load.image('space', 'assets/skies/deep-space.jpg');
   game.load.image('bullet', 'assets/games/asteroids/bullets.png');
   game.load.image('ship', 'assets/games/asteroids/ship3.png');
+  game.load.image('boss', 'assets/games/asteroids/boss.png');
   game.load.image('asteroid', 'assets/games/asteroids/asteroid.png');
   game.load.image('fire', 'assets/games/asteroids/fire.png');
-  game.load.spritesheet('flame', 'assets/games/asteroids/flame.png', 128, 128)
+  game.load.spritesheet('flame', 'assets/games/asteroids/flame.png', 128, 128);
   game.load.spritesheet('explosion', 'assets/games/asteroids/explode.png', 128, 128);
   game.load.spritesheet('eball', 'assets/games/asteroids/eball.png', 96, 96);
   game.load.spritesheet('eballexplode', 'assets/games/asteroids/eballexplode.png', 96, 96);
@@ -65,7 +95,7 @@ function preload() {
 
 function create() {
   Session.set("score", 0);
-  
+
   game.stage.disableVisibilityChange = true;
   game.renderer.clearBeforeRender = false;
   game.renderer.roundPixels = true;
@@ -130,6 +160,7 @@ function setupGroups() {
 
   game.physics.arcade.enable(asteroids, Phaser.Physics.ARCADE);
   game.physics.arcade.enable(spaceships, Phaser.Physics.ARCADE);
+  game.physics.arcade.enable(bossPlayer, Phaser.Physics.ARCADE);
 }
 
 function setupControls() {
@@ -140,7 +171,7 @@ function setupControls() {
 function setupCurrentPlayer() {
   currentPlayer = game.add.sprite(50, 50, 'ship');
   currentPlayer.anchor.setTo(0.5);
-  currentPlayer.tint = Math.random() * 0xffffff;
+  // currentPlayer.tint = Math.random() * 0xffffff;
   game.physics.enable(currentPlayer, Phaser.Physics.ARCADE);
   currentPlayer.body.drag.set(100);
   currentPlayer.body.maxVelocity.set(400);
@@ -283,12 +314,18 @@ function checkControls() {
   }
 
   if (game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR)) {
-    fireBullet(currentPlayer.body.x, currentPlayer.body.y, currentPlayer.rotation);
+    if (currentPlayer.alive) {
+      fireBullet(currentPlayer.body.x, currentPlayer.body.y, currentPlayer.rotation);
+    }
   }
 
-  if (game.input.keyboard.isDown(Phaser.Keyboard.SHIFT)) {
-    currentWeapon = (currentWeapon + 1) % 4;
-  }
+  game.input.keyboard.onUpCallback = function(e){
+      if(e.keyCode == Phaser.Keyboard.SHIFT){
+        currentWeapon = (currentWeapon + 1) % 4;
+        console.log(currentWeapon);
+        Session.set("weapon", ["MultiBullets", "RapidBullets", "<span style='color: red'>Flamethrower</span>", "<span style='color: blue'>Ion Cannon</span>"][currentWeapon]);
+      }
+    };
 }
 
 
@@ -429,7 +466,27 @@ function checkCollisions() {
   game.physics.arcade.collide(asteroids, flames, flameAsteroidHandler);
   game.physics.arcade.collide(asteroids, bullets, bulletAsteroidHandler);
   game.physics.arcade.collide(asteroids, eballs, eballAsteroidHandler);
+  game.physics.arcade.collide(bossPlayer, currentPlayer, bossCurrentPlayerHandler);
+  game.physics.arcade.collide(bossPlayer, bullets, bossBulletHandler);
+
+
 }
+
+function bossCurrentPlayerHandler (bossPlayer, currentPlayer) {
+  playExplosion(currentPlayer.body.x, currentPlayer.body.y);
+  currentPlayer.kill();
+  Players.update(currentPlayer._id, {$set: {
+    status: 'dead'
+  }});
+
+}
+
+function bossBulletHandler (bossPlayer, currentPlayer) {
+  bossPlayer.update(bossPlayer._id, {$inc: {health: -1}});
+  playExplosion(bossPlayer.body.x, bossPlayer.body.y, 0.4);
+  killAsteroidIfDead(bossPlayer);
+}
+
 
 function spaceshipAsteroidHandler (spaceship, asteroid) {
   playExplosion(spaceship.body.x, spaceship.body.y);
@@ -440,38 +497,6 @@ function spaceshipAsteroidHandler (spaceship, asteroid) {
     status: 'dead'
   }});
   Asteroids.remove(asteroid._id);
-  
-  if(Meteor.user()) {
-    var username = Meteor.user().username;
-    var score = Scoreboard.findOne(username);
-    // console.log(score);
-    
-    if (score) {
-      
-      var oldScore = score.score;
-      var newScore = Session.get("score");
-      // console.log("existing score found, old: " + oldScore + " new: " + newScore);
-      
-      if (newScore > oldScore) {
-        Scoreboard.update({_id: username}, {$set: {
-          score: newScore,
-          createdAt: new Date()
-        }});
-        // console.log("overwriting");
-      }
-    } else {
-      // console.log("inserting new score");
-      Scoreboard.insert({
-        _id: username,
-        score: Session.get("score"),
-        createdAt: new Date()
-      });
-    }
-  } else {
-    // console.log("not logged in");
-  }
-  
-  Session.set("score", 0);
 }
 
 function flameAsteroidHandler (asteroid, flame) {
@@ -503,6 +528,15 @@ function killAsteroidIfDead(asteroid) {
     asteroid.kill();
     Asteroids.remove(asteroid._id);
     Session.set("score", Session.get("score") + 10);
+  }
+}
+
+function killbossPlayerIfDead(bossPlayer) {
+  var boss = bossPlayer.findOne(bossPlayer._id)
+  if (boss && boss.health <= 0) {
+    playExplosion(bossPlayer.body.x, bossPlayer.body.y);
+    bossPlayer.kill();
+    bossPlayer.remove(bossPlayer._id);
   }
 }
 
