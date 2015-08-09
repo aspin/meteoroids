@@ -5,12 +5,12 @@ currentPlayer = null;
 var game;
 var playerList = {}, asteroidsList = {};
 var cursors, bullet, bulletTime = 0;
-var bullets, asteroids, spaceships, explosions;
-var asteroid, bullet;
+var bullets, flames, asteroids, spaceships, explosions;
 var activePlayer = false;
-var currentWeapon = 0;
-
 var isUpdating = false;
+
+var currentWeapon = 0;
+var currentDamage = 1;
 
 Template.meteoroid.onRendered(function() {
   game = new Phaser.Game(HEIGHT, WIDTH, Phaser.AUTO, 'meteoroid', { preload: preload, create: create, update: update, render: render });
@@ -21,8 +21,8 @@ Template.meteoroid.onRendered(function() {
 });
 
 Template.meteoroid.events({
-  "click #restart": function(event, template){
-    Meteor.call("startGame", function(error, result){
+  "click #levelOne": function(event, template){
+    Meteor.call("levelOne", function(error, result){
       if(error){
         console.log("error", error);
       } else {
@@ -40,6 +40,8 @@ function preload() {
   game.load.image('bullet', 'assets/games/asteroids/bullets.png');
   game.load.image('ship', 'assets/games/asteroids/ship3.png');
   game.load.image('asteroid', 'assets/games/asteroids/asteroid.png');
+  game.load.image('fire', 'assets/games/asteroids/fire.png');
+  game.load.spritesheet('flame', 'assets/games/asteroids/flame.png', 128, 128)
   game.load.spritesheet('explosion', 'assets/games/asteroids/explode.png', 128, 128);
 }
 
@@ -52,6 +54,7 @@ function create() {
 
   asteroids = game.add.group();
   bullets = game.add.group();
+  flames = game.add.group();
   spaceships = game.add.group();
   explosions = game.add.group();
 
@@ -70,6 +73,15 @@ function setupGroups() {
   bullets.createMultiple(20, 'bullet');
   bullets.setAll('anchor.x', 0.5);
   bullets.setAll('anchor.y', 0.5);
+
+  flames.enableBody = true;
+  flames.physicsBodyType = Phaser.Physics.ARCADE;
+  flames.createMultiple(3, 'flame');
+  flames.setAll('anchor.x', 0.5);
+  flames.setAll('anchor.y', 0.5);
+  flames.forEach(function(flame) {
+    flame.animations.add('flame');
+  });
 
   explosions.createMultiple(30, 'explosion');
   explosions.forEach(function(explosion) {
@@ -233,7 +245,7 @@ function checkControls() {
   if (game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR)) {
     fireBullet(currentPlayer.body.x, currentPlayer.body.y, currentPlayer.rotation);
   }
-  
+
   if (game.input.keyboard.isDown(Phaser.Keyboard.SHIFT)) {
     currentWeapon = (currentWeapon + 1) % 3;
   }
@@ -262,7 +274,7 @@ function fireBullet (x, y, rotation) {
   } else if (currentWeapon === 0) {
     console.log(1);
     if (game.time.now > bulletTime) {
-      
+
       bullet1 = bullets.getFirstExists(false);
       if (bullet1) {
         bullet1.reset(x + 15, y + 15);
@@ -276,7 +288,7 @@ function fireBullet (x, y, rotation) {
           rotation: bullet1.rotation,
         });
       }
-      
+
       bullet2 = bullets.getFirstExists(false);
       if (bullet2) {
         bullet2.reset(x + 15, y + 15);
@@ -290,7 +302,7 @@ function fireBullet (x, y, rotation) {
           rotation: bullet2.rotation,
         });
       }
-      
+
       bullet3 = bullets.getFirstExists(false);
       if (bullet3) {
         bullet3.reset(x + 15, y + 15);
@@ -306,12 +318,32 @@ function fireBullet (x, y, rotation) {
         });
       }
     }
+  } else if (currentWeapon === 2) {
+      if (game.time.now > bulletTime) {
+        bullet = flames.getFirstExists(false);
+
+        if (bullet) {
+          bullet.reset(x + 15, y + 15);
+          bullet.lifespan = 2000;
+          bullet.rotation = rotation;
+          bullet.play('flame', 30, true, true);
+
+          game.physics.arcade.velocityFromRotation(rotation, 400, bullet.body.velocity);
+          bulletTime = game.time.now + 50;
+
+          Bullets.remove(Bullets.insert({
+            x: bullet.x,
+            y: bullet.y,
+            rotation: bullet.rotation,
+          }));
+        }
+      }
   }
 }
 
 function checkCollisions() {
   game.physics.arcade.collide(asteroids, currentPlayer, spaceshipAsteroidHandler);
-  // game.physics.arcade.collide(asteroids, spaceships, spaceshipAsteroidHandler);
+  game.physics.arcade.collide(asteroids, flames, flameAsteroidHandler);
   game.physics.arcade.collide(asteroids, bullets, bulletAsteroidHandler);
 }
 
@@ -326,10 +358,22 @@ function spaceshipAsteroidHandler (spaceship, asteroid) {
   Asteroids.remove(asteroid._id);
 }
 
-function bulletAsteroidHandler (asteroid, bullets) {
+function flameAsteroidHandler (asteroid, flame) {
+  flame.kill()
+  Asteroids.update(asteroid._id, {$inc: {health: -5}});
+  playExplosion(asteroid.body.x, asteroid.body.y, 1.1);
+  killAsteroidIfDead(asteroid);
+}
+
+function bulletAsteroidHandler (asteroid, bullet) {
   Asteroids.update(asteroid._id, {$inc: {health: -1}});
   playExplosion(asteroid.body.x, asteroid.body.y, 0.4);
-  if (Asteroids.findOne(asteroid._id).health <= 0) {
+  killAsteroidIfDead(asteroid);
+}
+
+function killAsteroidIfDead(asteroid) {
+  var theAst = Asteroids.findOne(asteroid._id)
+  if (theAst && theAst.health <= 0) {
     playExplosion(asteroid.body.x, asteroid.body.y);
     asteroid.kill();
     Asteroids.remove(asteroid._id);

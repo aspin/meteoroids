@@ -1,5 +1,5 @@
 Meteor.methods({
-  startGame: function(numAsteroids = 5, Xmax = 1066, Ymax = 600) {
+  levelOne: function(numAsteroids = 5, Xmax = 1066, Ymax = 600) {
     Asteroids.remove({});
     for(var i = 0; i < numAsteroids; i++) {
       var randomX = Math.floor(Math.random() * Xmax);
