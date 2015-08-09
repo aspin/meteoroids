@@ -14,6 +14,26 @@
         <button id="levelThree" class="btn btn-danger">Level Three</button>
         <button id="levelFour" class= "btn btn-info">Level Four</button>
       </div>
+      
+      <br>
+      <h3>Top Ten</h3>
+      <table align="center" class="gridtable">
+        <tr>
+          <th>Username</th>
+          <th>Score</th>
+        </tr>
+        {{#each scoreboard}}
+          {{> board}}
+        {{/each}}
+      </table>
     </div>
+    
   </div>
+</template>
+
+<template name="board">
+  <tr>
+    <td>{{_id}}</td>
+    <td>{{score}}</td>
+  </tr>
 </template>
