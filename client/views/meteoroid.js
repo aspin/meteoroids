@@ -1,7 +1,8 @@
 var HEIGHT = 1066;
 var WIDTH = 600;
 
-var game, currentPlayer;
+currentPlayer = null;
+var game;
 var playerList = {}, asteroidsList = {};
 var cursors, bullet, bulletTime = 0;
 var bullets, asteroids, spaceships, explosions;
@@ -117,12 +118,7 @@ function setupObservers() {
       Players.find().observeChanges({
         added: function(id, fields) {
           if (id !== currentPlayer._id) {
-            var player = spaceships.create(fields.x, fields.y, 'ship');
-            player._id = id;
-            player.rotation = fields.rotation;
-            player.tint = fields.tint;
-            player.anchor.setTo(0.5);
-            playerList[id] = player;
+            addPlayer(id, fields.x, fields.y, fields.rotation, fields.tint);
           } else if (fields.isHost){
             isHost = true;
           }
@@ -137,12 +133,41 @@ function setupObservers() {
               playExplosion(player.x, player.y);
               player.kill();
             }
+            else {
+              if (player) {
+                player.x = fields.x;
+                player.y = fields.y;
+              }
+              else {
+                player = Players.findOne(id);
+                addPlayer(id, player.x, player.y, player.rotation, player.tint);
+                Players.update(id, {$set: { status: 'alive' }});
+              }
+            }
+          }
+          else if (fields.status == 'reset') {
+            currentPlayer.kill();
+            setupCurrentPlayer();
+            currentPlayer._id = id;
+            fields.x ? currentPlayer.x = fields.x : currentPlayer.x = 50;
+            fields.y ? currentPlayer.y = fields.y : currentPlayer.y = 50;
+            console.log(fields);
+            Players.update(id, {$set: { status: 'alive' }});
           }
         },
         removed: function(id) {
           playerList[id].destroy();
         }
       });
+
+      function addPlayer(id, x, y, rotation, tint) {
+        var player = spaceships.create(x, y, 'ship');
+        player._id = id;
+        player.rotation = rotation;
+        player.tint = tint;
+        player.anchor.setTo(0.5);
+        playerList[id] = player;
+      }
 
       Asteroids.find().observeChanges({
         added: function(id, fields) {

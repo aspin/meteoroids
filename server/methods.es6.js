@@ -15,8 +15,13 @@ Meteor.methods({
       });
     }
 
-    var numP = Players.find().count();
-    Players.update({}, { status: 'dead' });
+    var count = 0;
+    var coord = [[50, 50], [50, 550], [950, 550], [950, 50]];
+    Players.find().forEach(function(player) {
+      console.log(coord[count][0],coord[count][1]);
+      Players.update(player._id, {$set: {status: 'reset', x: coord[count][0], y: coord[count][1]}});
+      count += 1;
+    });
   },
   removeInactive: function() {
     // remove players that haven't been active in 30 seconds
