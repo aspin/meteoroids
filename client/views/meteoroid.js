@@ -54,7 +54,6 @@ function create() {
   explosions = game.add.group();
 
   setupCurrentPlayer();
-  setupColor();
   setupGroups();
   setupControls();
   setupObservers();
@@ -89,19 +88,12 @@ function setupControls() {
 function setupCurrentPlayer() {
   currentPlayer = game.add.sprite(50, 50, 'ship');
   currentPlayer.anchor.setTo(0.5);
-  // currentPlayer.tint = Math.random() * 0xffffff;
+  currentPlayer.tint = Math.random() * 0xffffff;
   game.physics.enable(currentPlayer, Phaser.Physics.ARCADE);
   currentPlayer.body.drag.set(100);
   currentPlayer.body.maxVelocity.set(400);
   currentPlayer.body.collideWorldBounds=true;
   currentPlayer.body.bounce.setTo(0.2,0.2);
-}
-
-function setupColor() {
-  var colorArray = ['0xCCFFFF', '0xFFFF66', '0xFF6600', '0x66FF33']; //blue, yellow, orange, green
-  for(var i = 0; i < colorArray.length; i++) {
-    currentPlayer.tint = colorArray[i];
-  }
 }
 
 function setupObservers() {
