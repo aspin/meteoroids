@@ -8,13 +8,14 @@
 
 Template.meteoroid.onRendered(function() {
     // add javascript to be executed when the template first_view is rendered
-    var game = new Phaser.Game(800, 600, Phaser.CANVAS, 'phaser-example', { preload: preload, create: create, update: update, render: render });
+    var game = new Phaser.Game(1200, 1000, Phaser.AUTO, 'phaser-example', { preload: preload, create: create, update: update, render: render });
 
     function preload() {
 
         game.load.image('space', 'assets/skies/deep-space.jpg');
         game.load.image('bullet', 'assets/games/asteroids/bullets.png');
-        game.load.image('ship', 'assets/games/asteroids/ship.png');
+        game.load.image('ship', 'assets/games/asteroids/ship3.png');
+        game.load.image('asteroid', 'assets/games/asteroids/asteroid.png');
 
     }
 
@@ -24,6 +25,9 @@ Template.meteoroid.onRendered(function() {
     var bullet;
     var bullets;
     var bulletTime = 0;
+    var asteroid;
+    var randomXPosition; 
+    var randomYPosition;
 
     function create() {
 
@@ -37,25 +41,35 @@ Template.meteoroid.onRendered(function() {
         //  A spacey background
         game.add.tileSprite(0, 0, game.width, game.height, 'space');
 
+        // Create asteroid in random positions 
+        
+
+        for(var i = 0; i < 3; i++) {
+            randomXPosition = Math.floor(Math.random() * 1000) + 100;
+            randomYPosition = Math.floor(Math.random() * 800) + 100;
+            asteroid = game.add.sprite(randomXPosition, randomYPosition, 'asteroid');
+        }
+        game.physics.arcade.enable(asteroid);
+
         //  Our ships bullets
         bullets = game.add.group();
         bullets.enableBody = true;
         bullets.physicsBodyType = Phaser.Physics.ARCADE;
 
-        //  All 40 of them
-        bullets.createMultiple(40, 'bullet');
+        //  Shoot 3 bullets at once
+        bullets.createMultiple(1, 'bullet');
         bullets.setAll('anchor.x', 0.5);
         bullets.setAll('anchor.y', 0.5);
 
         //  Our player ship
-        sprite = game.add.sprite(300, 300, 'ship');
+        sprite = game.add.sprite(50, 50, 'ship');
         sprite.anchor.set(0.5);
 
         //  and its physics settings
         game.physics.enable(sprite, Phaser.Physics.ARCADE);
 
         sprite.body.drag.set(100);
-        sprite.body.maxVelocity.set(200);
+        sprite.body.maxVelocity.set(100);
 
         //  Game input
         cursors = game.input.keyboard.createCursorKeys();
@@ -96,6 +110,9 @@ Template.meteoroid.onRendered(function() {
 
         bullets.forEachExists(screenWrap, this);
 
+    }
+    function collision() {
+        console.log("collided");
     }
 
     function fireBullet () {
