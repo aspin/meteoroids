@@ -312,7 +312,7 @@ function setupObservers() {
                 }
               }
             }
-          }, 2500);
+          }, 2000);
         }
       })
     });
@@ -543,11 +543,13 @@ function bossCurrentPlayerHandler (bossPlayer, currentPlayer) {
 
 function bossBulletHandler (bossPlayer, currentPlayer) {
   BOSSPLAYER.update(bossPlayer._id, {$inc: {health: -1}});
-  playExplosion(bossPlayer.body.x, bossPlayer.body.y, 0.4);
+  var random1 = Math.random() * 20,
+      random2 = Math.random() * 20;
+  playExplosion(bossPlayer.body.center.x + random1, bossPlayer.body.center.y + random2, 0.5);
 
   var theBoss = BOSSPLAYER.findOne(bossPlayer._id)
   if (theBoss && theBoss.health <= 0) {
-    playExplosion(bossPlayer.body.x, bossPlayer.body.y);
+    playExplosion(bossPlayer.body.x, bossPlayer.body.y, 10);
     bossPlayer.kill();
     BOSSPLAYER.remove(theBoss._id);
     Session.set("score", Session.get("score") + 700);
@@ -648,6 +650,7 @@ function killbossPlayerIfDead(bossPlayer) {
 function playExplosion(x, y, scale) {
   scale = scale || 1;
   var explosion = explosions.getFirstExists(false);
+  explosion.z = 1000;
   explosion.scale.set(scale, scale);
   explosion.reset(x, y);
   explosion.play('explosion', 30, false, true);
